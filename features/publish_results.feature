@@ -1,6 +1,7 @@
 Feature: Publish results
 
   Scenario: Single passing step
+    Given a git repo with remote "origin" at "git@github.com:cucumber-ltd/cucumber-pro-test.git"
     Given a file named "features/step_definitions/steps.rb" with:
       """
       Given(/pass/) { }
@@ -12,7 +13,7 @@ Feature: Publish results
           Given passing
       """
     When I run `cucumber -f Cucumber::Pro`
-    Then the Cucumber Pro results endpoint should receive JSON:
+    Then the "api/github/cucumber-ltd/cucumber-pro-test/results" endpoint should receive JSON:
       """
       [
         { 
