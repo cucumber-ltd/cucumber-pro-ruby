@@ -5,11 +5,8 @@ Given(/^a git repo$/) do
 end
 
 Then(/^the results service should receive one passing result$/) do
+  sleep 3
   results_service.messages.length.should == 1
   results_service.messages.first.body.status.should == "passing"
 end
 
-  def results_service
-    FakeResultsService.instance
-  end
-}
