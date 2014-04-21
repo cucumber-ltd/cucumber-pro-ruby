@@ -27,7 +27,7 @@ module Cucumber
       def initialize(host, port)
         @ready = false
         start_client(host, port)
-        loop until @ready
+        loop until @ready || @error
       end
 
       def send(message)
@@ -38,6 +38,7 @@ module Cucumber
       private
 
       def start_client(host, port)
+        sleep 1
         p [:client, :starting]
         Thread.new do
           EM.run do
@@ -46,6 +47,11 @@ module Cucumber
             @ws.on(:open) do
               p [:client, :open]
               @ready = true
+            end
+
+            @ws.on(:error) do
+              p [:client, :error]
+              @error = true
             end
 
             @ws.on(:message) do |event|

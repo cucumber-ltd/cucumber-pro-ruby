@@ -3,8 +3,6 @@ require 'json'
 
 module FakeResultsService
   class << self
-    attr_accessor :ready
-
     def messages
       @messages ||= []
     end
@@ -19,11 +17,11 @@ module FakeResultsService
   end
 
   app = lambda do |env|
+    p [:server, :starting]
     ws = Faye::WebSocket.new(env)
 
     ws.on :open do |event|
       p [:server, :open]
-      FakeResultsService.instance.ready = true
     end
 
     ws.on :message do |event|
