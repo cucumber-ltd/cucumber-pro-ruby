@@ -9,9 +9,14 @@ module Cucumber
       end
 
       def before_step_result(*args)
-        raise "Not ready to deal with new API" if args.length == 1
         keyword, step_match, multiline_arg, status, exception, source_indent, background, file_colon_line = *args
-        p [file_colon_line, status, Scm::Repo.find.slug]
+        p [:step, file_colon_line, status, Scm::Repo.find.slug]
+      end
+
+      def after_feature_element(feature_element)
+        return if Cucumber::Ast::ScenarioOutline === feature_element
+        scenario = feature_element
+        p [:scenario, scenario.file_colon_line, scenario.status, Scm::Repo.find.slug]
       end
     end
 

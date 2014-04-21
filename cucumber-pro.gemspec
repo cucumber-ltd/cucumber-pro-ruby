@@ -15,12 +15,15 @@ Gem::Specification.new do |s|
   s.required_ruby_version = ">= 1.9.3"
 
   s.add_dependency 'grit'
+  s.add_dependency 'faye-websocket'
 
   s.add_development_dependency 'bundler', '>= 1.3.5'
   s.add_development_dependency 'rake',    '>= 0.9.2'
   s.add_development_dependency 'rspec',   '>= 2.14.1'
   s.add_development_dependency 'cucumber'
   s.add_development_dependency 'aruba'
+  s.add_development_dependency 'thin'
+  s.add_development_dependency 'rack'
 
   s.rubygems_version = ">= 1.6.1"
   s.files            = `git ls-files`.split("\n").reject {|path| path =~ /\.gitignore$/ }
