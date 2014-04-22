@@ -37,6 +37,8 @@ module Cucumber
 
       private
 
+      require 'faye/websocket'
+      require 'eventmachine'
       def start_client(host, port)
         p [:client, :starting]
         Thread.new do
