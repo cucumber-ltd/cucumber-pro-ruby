@@ -20,6 +20,10 @@ module Cucumber
         scenario = feature_element
         # p [:scenario, scenario.file_colon_line, scenario.status, Scm::Repo.find.slug]
       end
+
+      def after_features(*args)
+        @session.close
+      end
     end
 
     require 'json'
@@ -27,21 +31,33 @@ module Cucumber
       def initialize(host, port)
         @ready = false
         start_client(host, port)
+        start_transmitter
         loop until @ready || @error
       end
 
       def send(message)
-        p [:client, :send, message]
-        @ws.send(message.to_json)
+        @queue.push(message)
+      end
+
+      def close
+        sleep 1
       end
 
       private
+
+      def start_transmitter
+        @queue = Queue.new
+        @transmitter = Thread.new do
+          message = @queue.pop
+          @ws.send(message.to_json)
+        end
+      end
 
       require 'faye/websocket'
       require 'eventmachine'
       def start_client(host, port)
         p [:client, :starting]
-        Thread.new do
+        em = Thread.new do
           EM.run do
             @ws = Faye::WebSocket::Client.new("ws://#{host}:#{port}")
 
