@@ -5,7 +5,12 @@ Given(/^a git repo$/) do
 end
 
 Then(/^the results service should receive one passing result$/) do
-  results_service.messages.length.should == 1
+  sleeping(0.1).seconds.between_tries.failing_after(30).tries do
+    results_service.messages.length.should == 1
+  end
   results_service.messages.first.body.status.should == "passing"
 end
+
+require 'anticipate'
+World(Anticipate)
 

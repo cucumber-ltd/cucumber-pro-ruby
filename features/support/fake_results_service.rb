@@ -44,7 +44,7 @@ module FakeResultsService
   require 'rack'
   require 'eventmachine'
   Faye::WebSocket.load_adapter 'thin'
-  Thread.new do
+  $em = Thread.new do
     EM.run do
       thin = Rack::Handler.get('thin')
       thin.run app, :Port => 54321
@@ -53,7 +53,12 @@ module FakeResultsService
   end
 
   loop until EM.reactor_running?
+
 end
 
-Before { FakeResultsService.instance.reset }
-After { p [:server, :messages, FakeResultsService.instance.messages] }
+if respond_to?(:Before)
+  Before { FakeResultsService.instance.reset }
+  After { p [:server, :messages, FakeResultsService.instance.messages] }
+else
+  $em.join
+end

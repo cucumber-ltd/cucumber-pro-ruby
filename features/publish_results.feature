@@ -1,3 +1,4 @@
+@announce
 Feature: Publish results
 
   Scenario: Single passing step

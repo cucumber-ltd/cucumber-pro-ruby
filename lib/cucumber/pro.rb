@@ -38,7 +38,6 @@ module Cucumber
       private
 
       def start_client(host, port)
-        sleep 1
         p [:client, :starting]
         Thread.new do
           EM.run do
