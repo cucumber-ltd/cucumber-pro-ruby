@@ -5,3 +5,7 @@ Before do
   path = File.expand_path(File.dirname(__FILE__) + '/../../lib')
   set_env 'RUBYLIB', path
 end
+
+Before do
+  @aruba_timeout_seconds = 5
+end
