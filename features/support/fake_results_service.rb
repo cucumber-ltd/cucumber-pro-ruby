@@ -53,12 +53,13 @@ module FakeResultsService
   end
 
   loop until EM.reactor_running?
-
 end
 
 if respond_to?(:Before)
+  # Cucumber mode
   Before { FakeResultsService.instance.reset }
   After { p [:server, :messages, FakeResultsService.instance.messages] }
 else
+  # Standalone (manual test) mode
   $em.join
 end
