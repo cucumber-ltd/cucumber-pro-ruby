@@ -4,6 +4,6 @@ World Module.new {
   end
 
   def results_service
-    FakeResultsService.instance
+    FakeResultsService
   end
 }

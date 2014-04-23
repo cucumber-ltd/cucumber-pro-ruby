@@ -1,3 +1,4 @@
+- Fix timing issue: client seems to close too quickly, preventing last message from being sent reliably
 - Make sure the client waits for ack before sending next message
 - Make the tests wait before asserting on the messages on the server
 - Send the right messages with the right data in them
