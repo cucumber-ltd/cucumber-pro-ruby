@@ -43,6 +43,7 @@ module Cucumber
       end
 
       def close
+        logger.debug [:session, :close]
         client.close
       end
 
@@ -71,7 +72,8 @@ module Cucumber
       end
 
       def start(queue)
-        logger.debug [:client, :starting]
+        open = false
+        logger.debug [:client, :start]
         @em = Thread.new do
           begin
             EM.run do
@@ -79,7 +81,8 @@ module Cucumber
 
               ws.on(:open) do
                 logger.debug [:client, :open]
-                until @please_stop do
+                until @please_stop && queue.empty? do
+                  open = true
                   message = queue.pop
                   logger.debug [:client, :send, message]
                   ws.send(message.to_json)
@@ -106,6 +109,7 @@ module Cucumber
             puts exception, exception.backtrace.join("/n")
             exit 1
           end
+          loop until open
         end
 
       end
