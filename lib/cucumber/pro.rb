@@ -59,34 +59,34 @@ module Cucumber
 
       def start(queue)
         open = false
-        logger.debug [:client, :start]
         @em = Thread.new do
+          logger.debug [:ws, :start]
           begin
             EM.run do
               ws = Faye::WebSocket::Client.new(@url)
 
               ws.on(:open) do
-                logger.debug [:client, :open]
+                logger.debug [:ws, :open]
                 until @please_stop && queue.empty? do
                   open = true
                   message = queue.pop
-                  logger.debug [:client, :send, message]
+                  logger.debug [:ws, :send, message]
                   ws.send(message.to_json)
                 end
                 @stopped = true
               end
 
               ws.on(:error) do
-                logger.debug [:client, :error]
+                logger.debug [:ws, :error]
                 @error = true
               end
 
               ws.on(:message) do |event|
-                logger.debug [:client, :message, event.data]
+                logger.debug [:ws, :message, event.data]
               end
 
               ws.on(:close) do
-                logger.debug [:client, :close]
+                logger.debug [:ws, :close]
                 ws = nil
               end
             end
