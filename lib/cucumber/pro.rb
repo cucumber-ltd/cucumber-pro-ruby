@@ -8,8 +8,9 @@ module Cucumber
 
     class Formatter
       def initialize(runtime, io, options)
-        @logger = Logger.new(ENV['cucumber_pro_log_path'] || STDOUT)
-        @session = Session.new('localhost', 54321, @logger)
+        logger = Logger.new(ENV['cucumber_pro_log_path'] || STDOUT)
+        client = WebSocketClient.new('localhost', 5001, logger)
+        @session = Session.new(client, logger)
       end
 
       def before_step_result(*args)
@@ -31,72 +32,87 @@ module Cucumber
 
     require 'json'
     class Session
-      def initialize(host, port, logger)
-        @logger = logger
-        @ready = false
-        start_client(host, port)
-        start_transmitter
-        loop until @ready || @error
+      def initialize(client, logger)
+        @client, @logger = client, logger
+        client.start(queue)
       end
 
       def send(message)
         logger.debug [:session, :send, message]
-        @queue.push(message)
+        queue.push(message)
       end
 
       def close
-        @queue.push :stop
-        @transmitter_thread.join
+        client.close
+      end
+
+      private
+
+      def queue
+        @queue ||= Queue.new
+      end
+
+      attr_reader :logger, :client
+    end
+
+    require 'faye/websocket'
+    require 'eventmachine'
+    class WebSocketClient
+      def initialize(host, port, logger)
+        @url = "ws://#{host}:#{port}"
+        @logger = logger
+      end
+
+      def close
+        @please_stop = true
+        loop until @stopped
+        EM.stop_event_loop
+        @em.join
+      end
+
+      def start(queue)
+        logger.debug [:client, :starting]
+        @em = Thread.new do
+          begin
+            EM.run do
+              ws = Faye::WebSocket::Client.new(@url)
+
+              ws.on(:open) do
+                logger.debug [:client, :open]
+                until @please_stop do
+                  message = queue.pop
+                  logger.debug [:client, :send, message]
+                  ws.send(message.to_json)
+                end
+                @stopped = true
+              end
+
+              ws.on(:error) do
+                logger.debug [:client, :error]
+                @error = true
+              end
+
+              ws.on(:message) do |event|
+                logger.debug [:client, :message, event.data]
+              end
+
+              ws.on(:close) do
+                logger.debug [:client, :close]
+                ws = nil
+              end
+            end
+          rescue => exception
+            logger.fatal exception
+            puts exception, exception.backtrace.join("/n")
+            exit 1
+          end
+        end
+
       end
 
       private
 
       attr_reader :logger
-
-      def start_transmitter
-        @queue = Queue.new
-        @transmitter_thread = Thread.new do
-          loop do
-            message = @queue.pop
-            logger.debug [:transmit, message]
-            break if message == :stop
-            logger.debug [:socket, :send, message]
-            @ws.send(message.to_json)
-          end
-          # hack to ensure that the socket gets a chance to send the last message before we close it
-          sleep 1
-        end
-      end
-
-      require 'faye/websocket'
-      require 'eventmachine'
-      def start_client(host, port)
-        logger.debug [:client, :starting]
-        em = Thread.new do
-          EM.run do
-            @ws = Faye::WebSocket::Client.new("ws://#{host}:#{port}")
-
-            @ws.on(:open) do
-              logger.debug [:client, :open]
-              @ready = true
-            end
-
-            @ws.on(:error) do
-              logger.debug [:client, :error]
-              @error = true
-            end
-
-            @ws.on(:message) do |event|
-              logger.debug [:client, :message, event.data]
-            end
-
-            @ws.on(:close) do
-              logger.debug [:client, :close]
-              ws = nil
-            end
-          end
-        end
-      end
     end
 
     module Scm

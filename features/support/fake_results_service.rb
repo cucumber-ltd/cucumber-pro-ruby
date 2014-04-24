@@ -51,7 +51,7 @@ module FakeResultsService
     begin
       EM.run do
         thin = Rack::Handler.get('thin')
-        thin.run app, :Port => 54321
+        thin.run app, :Port => 5001
         trap("INT") { exit }
       end
     rescue => exception
