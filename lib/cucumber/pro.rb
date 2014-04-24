@@ -9,8 +9,7 @@ module Cucumber
     class Formatter
       def initialize(runtime, io, options)
         logger = Logger.new(ENV['cucumber_pro_log_path'] || STDOUT)
-        client = WebSocketClient.new('localhost', 5001, logger)
-        @session = Session.new(client, logger)
+        @session = WebSocketSession.new('localhost', 5001, logger)
       end
 
       def before_step_result(*args)
@@ -31,10 +30,14 @@ module Cucumber
     end
 
     require 'json'
-    class Session
-      def initialize(client, logger)
-        @client, @logger = client, logger
-        client.start(queue)
+    require 'faye/websocket'
+    require 'eventmachine'
+    class WebSocketSession
+      def initialize(host, port, logger)
+        @url = "ws://#{host}:#{port}"
+        @logger = logger
+        @queue = Queue.new
+        start(queue)
       end
 
       def send(message)
@@ -44,32 +47,15 @@ module Cucumber
 
       def close
         logger.debug [:session, :close]
-        client.close
-      end
-
-      private
-
-      def queue
-        @queue ||= Queue.new
-      end
-
-      attr_reader :logger, :client
-    end
-
-    require 'faye/websocket'
-    require 'eventmachine'
-    class WebSocketClient
-      def initialize(host, port, logger)
-        @url = "ws://#{host}:#{port}"
-        @logger = logger
-      end
-
-      def close
         @please_stop = true
         loop until @stopped
         EM.stop_event_loop
         @em.join
       end
+
+      private
+
+      attr_reader :logger, :queue
 
       def start(queue)
         open = false
@@ -113,10 +99,6 @@ module Cucumber
         end
 
       end
-
-      private
-
-      attr_reader :logger
     end
 
     module Scm
