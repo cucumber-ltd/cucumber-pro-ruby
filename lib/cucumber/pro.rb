@@ -33,10 +33,16 @@ module Cucumber
     require 'faye/websocket'
     require 'eventmachine'
     class WebSocketSession
+      module State
+        Starting = :starting
+        Started = :started
+      end
+
       def initialize(host, port, logger)
         @url = "ws://#{host}:#{port}"
         @logger = logger
         @queue = Queue.new
+        @state = State::Starting
         start(queue)
       end
 
@@ -58,7 +64,6 @@ module Cucumber
       attr_reader :logger, :queue
 
       def start(queue)
-        open = false
         @em = Thread.new do
           logger.debug [:ws, :start]
           begin
@@ -68,7 +73,7 @@ module Cucumber
               ws.on(:open) do
                 logger.debug [:ws, :open]
                 until @please_stop && queue.empty? do
-                  open = true
+                  @state = State::Started
                   message = queue.pop
                   logger.debug [:ws, :send, message]
                   ws.send(message.to_json)
@@ -95,7 +100,7 @@ module Cucumber
             puts exception, exception.backtrace.join("/n")
             exit 1
           end
-          loop until open
+          loop until @state == State::Started
         end
 
       end
