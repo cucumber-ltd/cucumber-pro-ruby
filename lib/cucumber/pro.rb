@@ -44,8 +44,7 @@ module Cucumber
         @url = "ws://#{host}:#{port}"
         @logger = logger
         @queue = Queue.new
-        enter_state State::Starting
-        start(queue)
+        start
       end
 
       def send(message)
@@ -65,7 +64,8 @@ module Cucumber
 
       attr_reader :logger, :queue
 
-      def start(queue)
+      def start
+        enter_state State::Starting
         @em = Thread.new do
           logger.debug [:ws, :start]
           begin
