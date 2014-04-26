@@ -42,7 +42,7 @@ module Cucumber
         @url = "ws://#{host}:#{port}"
         @logger = logger
         @queue = Queue.new
-        @state = State::Starting
+        enter_state State::Starting
         start(queue)
       end
 
@@ -73,7 +73,7 @@ module Cucumber
               ws.on(:open) do
                 logger.debug [:ws, :open]
                 until @please_stop && queue.empty? do
-                  @state = State::Started
+                  enter_state State::Started
                   message = queue.pop
                   logger.debug [:ws, :send, message]
                   ws.send(message.to_json)
@@ -100,9 +100,17 @@ module Cucumber
             puts exception, exception.backtrace.join("/n")
             exit 1
           end
-          loop until @state == State::Started
         end
 
+        loop until started?
+      end
+
+      def enter_state(new_state)
+        @state = new_state
+      end
+
+      def started?
+        @state == State::Started
       end
     end
 
