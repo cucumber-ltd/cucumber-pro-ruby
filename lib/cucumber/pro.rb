@@ -74,13 +74,8 @@ module Cucumber
 
               ws.on(:open) do
                 logger.debug [:ws, :open]
-                until ready_to_stop? do
-                  enter_state State::Started
-                  message = queue.pop
-                  logger.debug [:ws, :send, message]
-                  ws.send(message.to_json)
-                end
-                enter_state State::Stopped
+                enter_state State::Started
+                send_next_message(ws)
               end
 
               ws.on(:error) do
@@ -106,7 +101,21 @@ module Cucumber
         loop until started?
       end
 
+      def send_next_message(ws)
+        if ready_to_stop?
+          enter_state State::Stopped
+          return
+        end
+        message = queue.pop
+        logger.debug [:ws, :send, message]
+        ws.send(message.to_json)
+        EM.next_tick do
+          send_next_message(ws)
+        end
+      end
+
       def enter_state(new_state)
+        return if @state == new_state
         @state = new_state
         logger.debug [:enter_state, new_state]
         self
@@ -117,7 +126,8 @@ module Cucumber
       end
 
       def ready_to_stop?
-        @state == State::Stopping && queue.empty?
+        return unless queue.empty?
+        @state == State::Stopping || @state == State::Stopped
       end
 
       def stopped?
