@@ -37,6 +37,7 @@ module Cucumber
         Starting = :starting
         Started = :started
         Stopping = :stopping
+        Stopped = :stopped
       end
 
       def initialize(host, port, logger)
@@ -55,7 +56,7 @@ module Cucumber
       def close
         logger.debug [:session, :close]
         enter_state State::Stopping
-        loop until @stopped
+        loop until stopped?
         EM.stop_event_loop
         @em.join
       end
@@ -79,7 +80,7 @@ module Cucumber
                   logger.debug [:ws, :send, message]
                   ws.send(message.to_json)
                 end
-                @stopped = true
+                enter_state State::Stopped
               end
 
               ws.on(:error) do
@@ -107,6 +108,8 @@ module Cucumber
 
       def enter_state(new_state)
         @state = new_state
+        logger.debug [:enter_state, new_state]
+        self
       end
 
       def started?
@@ -115,6 +118,10 @@ module Cucumber
 
       def ready_to_stop?
         @state == State::Stopping && queue.empty?
+      end
+
+      def stopped?
+        @state == State::Stopped
       end
     end
 
