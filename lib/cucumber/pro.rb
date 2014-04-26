@@ -82,8 +82,7 @@ module Cucumber
               end
 
               ws.on(:error) do
-                logger.debug [:ws, :error]
-                @error = true
+                logger.error [:ws, :error]
               end
 
               ws.on(:message) do |event|
