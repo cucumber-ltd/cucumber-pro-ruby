@@ -72,7 +72,7 @@ module Cucumber
 
               ws.on(:open) do
                 logger.debug [:ws, :open]
-                until @please_stop && queue.empty? do
+                until ready_to_stop? do
                   enter_state State::Started
                   message = queue.pop
                   logger.debug [:ws, :send, message]
@@ -111,6 +111,10 @@ module Cucumber
 
       def started?
         @state == State::Started
+      end
+
+      def ready_to_stop?
+        @please_stop && queue.empty?
       end
     end
 
