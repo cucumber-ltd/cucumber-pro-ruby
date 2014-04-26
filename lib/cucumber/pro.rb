@@ -36,6 +36,7 @@ module Cucumber
       module State
         Starting = :starting
         Started = :started
+        Stopping = :stopping
       end
 
       def initialize(host, port, logger)
@@ -53,7 +54,7 @@ module Cucumber
 
       def close
         logger.debug [:session, :close]
-        @please_stop = true
+        enter_state State::Stopping
         loop until @stopped
         EM.stop_event_loop
         @em.join
@@ -113,7 +114,7 @@ module Cucumber
       end
 
       def ready_to_stop?
-        @please_stop && queue.empty?
+        @state == State::Stopping && queue.empty?
       end
     end
 
