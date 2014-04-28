@@ -12,7 +12,7 @@ Feature: Publish results
         Scenario:
           Given failing
       """
-    When I run `cucumber -f Cucumber::Pro`
+    When I run `cucumber -f Cucumber::Pro -o /dev/null -f pretty`
     Then the results service should receive the results:
       | status |
       | passed |
