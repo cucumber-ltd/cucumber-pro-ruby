@@ -3,11 +3,6 @@ Feature: Publish results
 
   Scenario: Single passing step
     Given a git repo
-    And a file named "features/step_definitions/steps.rb" with:
-      """
-      Given(/pass/) { }
-      Given(/fail/) { fail }
-      """
     And a feature with:
       """
       Feature:

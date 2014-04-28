@@ -1,7 +1,18 @@
+Before do
+  write_file 'features/step_definitions/steps.rb', <<-END
+Given(/pass/) { }
+Given(/fail/) { fail }
+  END
+end
+
 Given(/^a git repo$/) do
   run "git init"
   run "git commit --allow-empty"
   run "git remote add origin #{repo_url}"
+end
+
+Given(/^a feature with:$/) do |content|
+  write_file 'features/test.feature', content
 end
 
 Then(/^the results service should receive the results:$/) do |results|
@@ -15,7 +26,3 @@ end
 
 require 'anticipate'
 World(Anticipate)
-
-Given(/^a feature with:$/) do |content|
-  write_file 'features/test.feature', content
-end
