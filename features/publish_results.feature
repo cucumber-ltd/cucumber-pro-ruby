@@ -8,11 +8,12 @@ Feature: Publish results
       Given(/pass/) { }
       Given(/fail/) { fail }
       """
-    And a file named "features/pass.feature" with:
+    And a feature with:
       """
       Feature:
         Scenario:
           Given passing
+
         Scenario:
           Given failing
       """

@@ -16,3 +16,6 @@ end
 require 'anticipate'
 World(Anticipate)
 
+Given(/^a feature with:$/) do |content|
+  write_file 'features/test.feature', content
+end
