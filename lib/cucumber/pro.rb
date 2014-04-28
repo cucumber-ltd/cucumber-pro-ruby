@@ -137,9 +137,8 @@ module Cucumber
       end
 
       def ready_to_stop?
-        logger.debug [:ready_to_stop?, queue.empty?, @state]
         return unless queue.empty?
-        @state == State::Stopping || @state == State::Stopped
+        @state == State::Stopping
       end
 
       def stopped?
