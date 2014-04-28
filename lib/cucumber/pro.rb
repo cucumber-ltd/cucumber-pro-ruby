@@ -33,11 +33,21 @@ module Cucumber
     require 'faye/websocket'
     require 'eventmachine'
     class WebSocketSession
-      module State
-        Starting = :starting
-        Started = :started
-        Stopping = :stopping
-        Stopped = :stopped
+
+      class SendMessage
+        def initialize(data)
+          @data = data
+        end
+
+        def send_to(ws)
+          ws.send(@data.to_json)
+        end
+      end
+
+      class Close
+        def send_to(ws)
+          ws.close
+        end
       end
 
       def initialize(host, port, logger)
@@ -49,17 +59,12 @@ module Cucumber
 
       def send(message)
         logger.debug [:session, :send, message]
-        queue.push(message)
+        queue.push(SendMessage.new(message))
       end
 
       def close
         logger.debug [:session, :close]
-        enter_state State::Stopping
-        until stopped?
-          logger.debug [:stopping, :state, @state]
-          sleep 0.1
-        end
-        EM.stop_event_loop
+        queue.push(Close.new)
         @em.join
       end
 
@@ -68,32 +73,24 @@ module Cucumber
       attr_reader :logger, :queue
 
       def start
-        enter_state State::Starting
         @em = Thread.new do
           begin
-            EM.run do
-              open_socket do |ws|
-                enter_state State::Started
-                send_next_message(ws)
-              end
-            end
+            EM.run { start_ws_client }
           rescue => exception
             logger.fatal exception
             puts exception, exception.backtrace.join("/n")
             exit 1
           end
         end
-
-        loop until started?
       end
 
-      def open_socket(&block)
+      def start_ws_client
         logger.debug [:ws, :start]
         ws = Faye::WebSocket::Client.new(@url)
 
         ws.on(:open) do
           logger.debug [:ws, :open]
-          block.call(ws)
+          process_queue(ws)
         end
 
         ws.on(:error) do
@@ -107,43 +104,25 @@ module Cucumber
         ws.on(:close) do
           logger.debug [:ws, :close]
           ws = nil
+          EM.stop_event_loop
         end
-      end
-
-      def send_next_message(ws)
-        if ready_to_stop?
-          enter_state State::Stopped
-          return
-        end
-        if !queue.empty?
-          message = queue.pop
-          logger.debug [:ws, :send, message]
-          ws.send(message.to_json)
-        end
-        EM.next_tick do
-          send_next_message(ws)
-        end
-      end
-
-      def enter_state(new_state)
-        return if @state == new_state
-        @state = new_state
-        logger.debug [:enter_state, new_state]
         self
       end
 
-      def started?
-        @state == State::Started
+      def process_queue(ws)
+        process_next_message(ws)
+        EM.next_tick do
+          process_queue(ws)
+        end
       end
 
-      def ready_to_stop?
-        return unless queue.empty?
-        @state == State::Stopping
+      def process_next_message(ws)
+        return if queue.empty?
+        message = queue.pop
+        message.send_to(ws)
+        logger.debug [:ws, :send, message]
       end
 
-      def stopped?
-        @state == State::Stopped
-      end
     end
 
     module Scm
