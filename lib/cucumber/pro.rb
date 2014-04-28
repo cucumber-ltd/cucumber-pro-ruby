@@ -55,7 +55,10 @@ module Cucumber
       def close
         logger.debug [:session, :close]
         enter_state State::Stopping
-        loop until stopped?
+        until stopped?
+          logger.debug [:stopping, :state, @state]
+          sleep 0.1
+        end
         EM.stop_event_loop
         @em.join
       end
@@ -126,6 +129,7 @@ module Cucumber
       end
 
       def ready_to_stop?
+        logger.debug [:ready_to_stop?, queue.empty?, @state]
         return unless queue.empty?
         @state == State::Stopping || @state == State::Stopped
       end

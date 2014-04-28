@@ -1,3 +1,14 @@
+- timing bug: queue has been drained but still in started state. Will reach the queue.pop and block, thus never checking whether it's time to stop.
+  - scenario: start and stop with no messages
+    - start up
+    - stop
+    - should stop gracefully and not hang
+  - scenario: start up, send a message then try to stop
+    - start up
+    - send a message
+    - wait for the message to go out through the socket
+    - stop
+    - should stop gracefully and not hang
 - Make sure the client waits for ack before sending next message
 - Send the right messages with the right data in them
 - Configure the host / port of the server rather than hard-coding
