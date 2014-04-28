@@ -70,28 +70,11 @@ module Cucumber
       def start
         enter_state State::Starting
         @em = Thread.new do
-          logger.debug [:ws, :start]
           begin
             EM.run do
-              ws = Faye::WebSocket::Client.new(@url)
-
-              ws.on(:open) do
-                logger.debug [:ws, :open]
+              open_socket do |ws|
                 enter_state State::Started
                 send_next_message(ws)
-              end
-
-              ws.on(:error) do
-                logger.error [:ws, :error]
-              end
-
-              ws.on(:message) do |event|
-                logger.debug [:ws, :message, event.data]
-              end
-
-              ws.on(:close) do
-                logger.debug [:ws, :close]
-                ws = nil
               end
             end
           rescue => exception
@@ -102,6 +85,29 @@ module Cucumber
         end
 
         loop until started?
+      end
+
+      def open_socket(&block)
+        logger.debug [:ws, :start]
+        ws = Faye::WebSocket::Client.new(@url)
+
+        ws.on(:open) do
+          logger.debug [:ws, :open]
+          block.call(ws)
+        end
+
+        ws.on(:error) do
+          logger.error [:ws, :error]
+        end
+
+        ws.on(:message) do |event|
+          logger.debug [:ws, :message, event.data]
+        end
+
+        ws.on(:close) do
+          logger.debug [:ws, :close]
+          ws = nil
+        end
       end
 
       def send_next_message(ws)
