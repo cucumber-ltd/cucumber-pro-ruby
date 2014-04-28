@@ -115,9 +115,11 @@ module Cucumber
           enter_state State::Stopped
           return
         end
-        message = queue.pop
-        logger.debug [:ws, :send, message]
-        ws.send(message.to_json)
+        if !queue.empty?
+          message = queue.pop
+          logger.debug [:ws, :send, message]
+          ws.send(message.to_json)
+        end
         EM.next_tick do
           send_next_message(ws)
         end
