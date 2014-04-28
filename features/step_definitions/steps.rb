@@ -5,6 +5,10 @@ Given(/fail/) { fail }
   END
 end
 
+After do
+  terminate_processes!
+end
+
 Given(/^a git repo$/) do
   run "git init"
   run "git commit --allow-empty"
