@@ -11,7 +11,7 @@ module Cucumber
     class Formatter
       def initialize(runtime, io, options)
         logger = Logger.new(ENV['cucumber_pro_log_path'] || STDOUT)
-        @session = WebSocketSession.new('localhost', 5001, logger)
+        @session = WebSocketSession.new('localhost', 5000, logger)
         @session.send({
           repo_url: 'git@github.com/cucumber/cucumber',
           branch: 'master',
