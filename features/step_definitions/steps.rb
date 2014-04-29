@@ -15,23 +15,38 @@ Given(/^a git repo$/) do
   run "git remote add origin #{repo_url}"
 end
 
-Given(/^a feature with:$/) do |content|
-  write_file 'features/test.feature', content
+Given(/^a feature "(.*?)" with:$/) do |path, content|
+  write_file path, content
 end
 
-Then(/^the results service should receive the results:$/) do |results|
-  results_messages = results_service.messages.select { |msg|
-    msg.key?('mime_type')
-  }
-  expected_statuses = results.hashes.map { |row| row['status'] }
-  sleeping(0.1).seconds.between_tries.failing_after(30).tries do
-    results_messages.length.should == results.hashes.length
+Then(/^the results service should receive a header$/) do
+  eventually do
+    results_service.messages.length.should > 0
   end
-  actual_statuses = results_messages.map { |msg|
-    msg['body']['status']
+  results_service.messages.first['repo_url'].should == repo_url
+end
+
+Then(/^the results service should receive these ([\w\-]+) results:$/) do |type, results|
+  expected_results = results.hashes
+  actual_results = eventually {
+    results = results_service.messages.select { |msg| msg['mime_type'] =~ /#{type}/ }
+    expect( results.length ).to eq expected_results.length
+    results
   }
+  expected_statuses = expected_results.map { |result| [result['status'], result['path'], result['location']] }
+  actual_statuses = actual_results.map { |result| [result['body']['status'], result['path'], result['location']] }
   expect( actual_statuses ).to eq expected_statuses
 end
 
 require 'anticipate'
-World(Anticipate)
+module Eventually
+  include Anticipate
+  def eventually(&block)
+    result = nil
+    sleeping(0.1).seconds.between_tries.failing_after(30).tries do
+      result = block.call
+    end
+    result
+  end
+end
+World(Eventually)

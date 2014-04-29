@@ -21,14 +21,16 @@ module Cucumber
           @repo = Grit::Repo.new(path)
         end
 
-        def slug
-          remote.match(/:(.+)\/(.+).git/).captures.join('/')
-        end
-
-        private
-
         def remote
           @repo.config['remote.origin.url']
+        end
+
+        def branch
+          @repo.head.name
+        end
+
+        def rev
+          @repo.head.commit.id
         end
       end
     end
