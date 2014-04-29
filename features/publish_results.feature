@@ -17,4 +17,3 @@ Feature: Publish results
       | status |
       | passed |
       | failed |
-
