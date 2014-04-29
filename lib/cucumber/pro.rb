@@ -12,11 +12,22 @@ module Cucumber
       def initialize(runtime, io, options)
         logger = Logger.new(ENV['cucumber_pro_log_path'] || STDOUT)
         @session = WebSocketSession.new('localhost', 5001, logger)
+        @session.send({
+          repo_url: 'git@github.com/cucumber/cucumber',
+          branch: 'master',
+          rev: 'abcdef0123',
+          group: 'made-up-id'
+        })
       end
 
       def before_step_result(*args)
         keyword, step_match, multiline_arg, status, exception, source_indent, background, file_colon_line = *args
-        @session.send(body: { status: status })
+        @session.send({
+          path: 'features/foo.feature',
+          location: 2,
+          mime_type: 'application/vnd.cucumber.test-step-result+json',
+          body: { status: status }
+        })
         # p [:step, file_colon_line, status, Scm::Repo.find.slug]
       end
 
