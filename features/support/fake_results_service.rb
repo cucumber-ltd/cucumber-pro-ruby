@@ -34,8 +34,6 @@ module FakeResultsService
 
     ws.on :close do |event|
       logger.debug [:server, :close]
-      EM.stop_event_loop
-      ws = nil
     end
 
     # Return async Rack response

@@ -33,7 +33,7 @@ Then(/^the results service should receive these ([\w\-]+) results:$/) do |type, 
     expect( results.length ).to eq expected_results.length
     results
   }
-  expected_statuses = expected_results.map { |result| [result['status'], result['path'], result['location']] }
+  expected_statuses = expected_results.map { |result| [result['status'], result['path'], result['location'].to_i ] }
   actual_statuses = actual_results.map { |result| [result['body']['status'], result['path'], result['location']] }
   expect( actual_statuses ).to eq expected_statuses
 end
