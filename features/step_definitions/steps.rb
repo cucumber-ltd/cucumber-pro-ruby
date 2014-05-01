@@ -10,9 +10,10 @@ After do
 end
 
 Given(/^a git repo$/) do
-  run "git init"
-  run "git commit --allow-empty"
-  run "git remote add origin #{repo_url}"
+  run_simple "git init"
+  run_simple "git commit --allow-empty -m 'Initial commit'"
+  run_simple "git remote add origin #{repo_url}"
+  run_simple "git config --get remote.origin.url"
 end
 
 Given(/^a feature "(.*?)" with:$/) do |path, content|
