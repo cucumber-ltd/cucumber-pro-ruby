@@ -1,4 +1,3 @@
-require 'logger'
 require 'cucumber/pro/web_socket_session'
 require 'cucumber/pro/scm'
 
@@ -6,8 +5,8 @@ module Cucumber
   module Pro
 
     class Formatter
-      def initialize(host, port, logger)
-        @session = WebSocketSession.new(host, port, logger)
+      def initialize(session)
+        @session = session
         send_header
       end
 

@@ -1,3 +1,4 @@
+require 'logger'
 require 'cucumber/pro/formatter'
 module Cucumber
   module Pro
@@ -5,7 +6,8 @@ module Cucumber
       logger = Logger.new(ENV['cucumber_pro_log_path'] || STDOUT)
       host = 'localhost'
       port = 5000
-      Formatter.new(host, port, logger)
+      session = WebSocketSession.new(host, port, logger)
+      Formatter.new(session)
     end
   end
 end
