@@ -4,8 +4,16 @@ require 'eventmachine'
 
 module Cucumber
   module Pro
+    module Error
+      AccessDenied = Class.new(StandardError) {
+        def initialize
+          super "Access denied."
+        end
+      }
+    end
 
     class WebSocketSession
+
 
       class SendMessage
         def initialize(data)
@@ -38,6 +46,9 @@ module Cucumber
         logger.debug [:session, :close]
         queue.push(Close.new)
         @em.join
+        if @ws_error
+          puts "Cucumber Pro failed to send results: #{@ws_error}"
+        end
       end
 
       private
@@ -50,8 +61,7 @@ module Cucumber
             EM.run { start_ws_client }
           rescue => exception
             logger.fatal exception
-            puts exception, exception.backtrace.join("/n")
-            exit 1
+            @ws_error = exception
           end
         end
       end
@@ -73,8 +83,9 @@ module Cucumber
           logger.debug [:ws, :message, event.data]
         end
 
-        ws.on(:close) do
+        ws.on(:close) do |event|
           logger.debug [:ws, :close]
+          @ws_error = Error::AccessDenied.new
           ws = nil
           EM.stop_event_loop
         end
