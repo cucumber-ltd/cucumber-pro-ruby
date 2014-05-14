@@ -3,6 +3,7 @@ require 'json'
 
 module FakeResultsService
   PORT = 5000
+  VALID_TOKEN = 'valid-cucumber-pro-token'
 
   class << self
     def messages
@@ -20,7 +21,7 @@ module FakeResultsService
 
   logger = self.logger
 
-  app = lambda do |env|
+  SocketApp = lambda do |env|
     logger.debug [:server, :starting]
     ws = Faye::WebSocket.new(env)
 
@@ -42,6 +43,19 @@ module FakeResultsService
     ws.rack_response
   end
 
+  class Security
+    def initialize(app)
+      @app = app
+    end
+
+    def call(env)
+      request = Rack::Request.new(env)
+      params = request.params
+      return [401, [], {}] unless params['token'] == VALID_TOKEN
+      @app.call(env)
+    end
+  end
+
   require 'thin'
   require 'rack'
   require 'eventmachine'
@@ -51,6 +65,7 @@ module FakeResultsService
     begin
       EM.run do
         thin = Rack::Handler.get('thin')
+        app = Security.new(SocketApp)
         thin.run app, :Port => PORT
         trap("INT") { exit }
       end
@@ -76,6 +91,7 @@ else
 require 'cucumber/pro'
 Cucumber::Pro.configure do |c|
   c.url = 'ws://localhost:#{FakeResultsService::PORT}'
+  c.token = "#{FakeResultsService::VALID_TOKEN}"
 end
     END
   end

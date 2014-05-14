@@ -7,7 +7,8 @@ module Cucumber
 
     class << self
       def new(*)
-        session = WebSocketSession.new(config.url, config.logger)
+        url = config.url + "?token=#{config.token}"
+        session = WebSocketSession.new(url, config.logger)
         Formatter.new(session)
       end
 
@@ -23,13 +24,14 @@ module Cucumber
     end
 
     class Config
-      attr_accessor :url, :logger
+      attr_accessor :url, :logger, :token
     end
 
     # Default config
     configure do |config|
-      config.url = 'ws://metarepo.cucumber.pro/ws'
+      config.url    = 'ws://metarepo.cucumber.pro/ws'
       config.logger = Logger.new(ENV['cucumber_pro_log_path'] || STDOUT)
+      config.token  = ENV['CUCUMBER_PRO_TOKEN']
     end
 
   end
