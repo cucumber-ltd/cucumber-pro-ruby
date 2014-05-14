@@ -1,4 +1,3 @@
-require 'cucumber/pro/web_socket_session'
 require 'cucumber/pro/scm'
 
 module Cucumber
