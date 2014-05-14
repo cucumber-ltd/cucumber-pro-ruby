@@ -23,9 +23,8 @@ module Cucumber
         end
       end
 
-      def initialize(host, port, logger)
-        @url = "ws://#{host}:#{port}"
-        @logger = logger
+      def initialize(url, logger)
+        @url, @logger = url, logger
         @queue = Queue.new
         start
       end

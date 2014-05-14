@@ -2,6 +2,8 @@ require 'faye/websocket'
 require 'json'
 
 module FakeResultsService
+  PORT = 5000
+
   class << self
     def messages
       @messages ||= []
@@ -49,7 +51,7 @@ module FakeResultsService
     begin
       EM.run do
         thin = Rack::Handler.get('thin')
-        thin.run app, :Port => 5000
+        thin.run app, :Port => PORT
         trap("INT") { exit }
       end
     rescue => exception
@@ -62,11 +64,19 @@ module FakeResultsService
   loop until EM.reactor_running?
 end
 
-if respond_to?(:Before)
+if !respond_to?(:Before)
+  # Standalone (manual test) mode
+  $em.join
+else
   # Cucumber mode
   Before { FakeResultsService.reset }
   After { FakeResultsService.logger.debug [:server, :messages, FakeResultsService.messages] }
-else
-  # Standalone (manual test) mode
-  $em.join
+  Before do
+    write_file 'features/step_definitions/cucumber_pro.rb', <<-END
+require 'cucumber/pro'
+Cucumber::Pro.configure do |c|
+  c.url = 'ws://localhost:#{FakeResultsService::PORT}'
+end
+    END
+  end
 end
