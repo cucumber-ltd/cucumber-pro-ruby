@@ -3,7 +3,6 @@ module Cucumber
 
     module Scm
 
-      require 'grit'
       class Repo
 
         NoGitRepoFound = Class.new(StandardError)
@@ -18,19 +17,25 @@ module Cucumber
         end
 
         def initialize(path)
-          @repo = Grit::Repo.new(path)
+          @path = path
         end
 
         def remote
-          @repo.config['remote.origin.url']
+          cmd('git config --get remote.origin.url')
         end
 
         def branch
-          @repo.head.name
+          cmd("git branch --contains #{rev}")
         end
 
         def rev
-          @repo.head.commit.id
+          cmd("git rev-parse HEAD")
+        end
+
+        private
+
+        def cmd(cmd)
+          Dir.chdir(@path) { `#{cmd}` }.strip
         end
       end
     end

@@ -1,10 +1,9 @@
 # -*- encoding: utf-8 -*-
 $LOAD_PATH.unshift File.expand_path("../lib", __FILE__)
-require "cucumber/pro/version"
 
 Gem::Specification.new do |s|
   s.name        = 'cucumber-pro'
-  s.version     = Cucumber::Pro::Version
+  s.version     = File.read(File.expand_path("../lib/cucumber/pro/version", __FILE__))
   s.authors     = ["Matt Wynne"]
   s.description = "Client library for publishing results to the Cucumber Pro service"
   s.summary     = "cucumber-pro-#{s.version}"
@@ -14,8 +13,7 @@ Gem::Specification.new do |s|
   s.license     = "MIT"
   s.required_ruby_version = ">= 1.9.3"
 
-  s.add_dependency 'grit'
-  s.add_dependency 'faye-websocket'
+  s.add_dependency 'faye-websocket', '~> 0.7'
 
   s.add_development_dependency 'bundler', '>= 1.3.5'
   s.add_development_dependency 'rake',    '>= 0.9.2'
