@@ -14,96 +14,115 @@ module Cucumber
 
     class WebSocketSession
 
-
       class SendMessage
-        def initialize(data)
-          @data = data
+        def initialize(socket, data)
+          @socket, @data = socket, data
         end
 
-        def send_to(ws)
-          ws.send(@data.to_json)
+        def call
+          @socket.send(@data.to_json)
         end
       end
 
       class Close
-        def send_to(ws)
-          ws.close
+        def initialize(socket)
+          @socket = socket
+        end
+
+        def call
+          @socket.close
         end
       end
 
       def initialize(url, logger)
         @url, @logger = url, logger
         @queue = Queue.new
-        start
+        @socket = SocketWriter.new(url, queue, logger, self)
       end
 
       def send(message)
         logger.debug [:session, :send, message]
-        queue.push(SendMessage.new(message))
+        queue.push(SendMessage.new(socket, message))
       end
 
       def close
         logger.debug [:session, :close]
-        queue.push(Close.new)
-        @em.join
-        if @ws_error
-          $stderr.puts "Cucumber Pro failed to send results: #{@ws_error}"
-        end
+        socket.close
+      end
+
+      def error(exception)
+        logger.fatal exception
+        $stderr.puts "Cucumber Pro failed to send results: #{exception}"
+        $stderr.puts exception.backtrace.join("\n")
       end
 
       private
 
-      attr_reader :logger, :queue
+      attr_reader :logger, :queue, :socket
 
-      def start
-        @em = Thread.new do
-          begin
-            EM.run { start_ws_client }
-          rescue => exception
-            logger.fatal exception
-            @ws_error = exception
+      class SocketWriter
+
+        def initialize(url, queue, logger, error_handler)
+          @url, @queue, @logger, @error_handler = url, queue, logger, error_handler
+          open
+        end
+
+        def close
+          queue.push(Close.new(@ws))
+          @em.join
+        end
+
+        def send(data)
+          @ws.send data
+        end
+
+        private
+
+        attr_reader :logger, :queue, :error_handler
+
+        def open
+          @em = Thread.new do
+            begin
+              EM.run { start_ws_client }
+            rescue => exception
+              error_handler.error exception
+            end
           end
         end
-      end
 
-      def start_ws_client
-        logger.debug [:ws, :start]
-        ws = Faye::WebSocket::Client.new(@url)
+        def start_ws_client
+          logger.debug [:ws, :start]
+          @ws = Faye::WebSocket::Client.new(@url)
 
-        ws.on(:open) do
-          logger.debug [:ws, :open]
-          process_queue(ws)
+          @ws.on(:open) do
+            logger.debug [:ws, :open]
+            process_queue
+          end
+
+          @ws.on(:error) do
+            logger.error [:ws, :error]
+          end
+
+          @ws.on(:message) do |event|
+            logger.debug [:ws, :message, event.data]
+          end
+
+          @ws.on(:close) do |event|
+            logger.debug [:ws, :close]
+            raise Error::AccessDenied.new if event.code == 401
+            @ws = nil
+            EM.stop_event_loop
+          end
+          self
         end
 
-        ws.on(:error) do
-          logger.error [:ws, :error]
+        def process_queue
+          queue.pop.call unless queue.empty?
+          EM.next_tick do
+            process_queue
+          end
         end
 
-        ws.on(:message) do |event|
-          logger.debug [:ws, :message, event.data]
-        end
-
-        ws.on(:close) do |event|
-          logger.debug [:ws, :close]
-          @ws_error = Error::AccessDenied.new
-          ws = nil
-          EM.stop_event_loop
-        end
-        self
-      end
-
-      def process_queue(ws)
-        process_next_message(ws)
-        EM.next_tick do
-          process_queue(ws)
-        end
-      end
-
-      def process_next_message(ws)
-        return if queue.empty?
-        message = queue.pop
-        message.send_to(ws)
-        logger.debug [:ws, :send, message]
       end
 
     end

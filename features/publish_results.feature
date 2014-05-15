@@ -22,6 +22,7 @@ Feature: Publish results
       | status | path                  | location |
       | passed | features/test.feature | 2        |
       | failed | features/test.feature | 5        |
+    And the stderr should not contain anything
 
   Scenario: A scenario outline
 
