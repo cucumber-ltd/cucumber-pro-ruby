@@ -47,7 +47,7 @@ module Cucumber
         queue.push(Close.new)
         @em.join
         if @ws_error
-          puts "Cucumber Pro failed to send results: #{@ws_error}"
+          $stderr.puts "Cucumber Pro failed to send results: #{@ws_error}"
         end
       end
 
