@@ -29,7 +29,7 @@ module Cucumber
 
     # Default config
     configure do |config|
-      config.url    = 'ws://metarepo.cucumber.pro/ws'
+      config.url    = 'wss://results.cucumber.pro/ws'
       config.logger = Logger.new(ENV['cucumber_pro_log_path'] || STDOUT)
       config.token  = ENV['CUCUMBER_PRO_TOKEN']
     end
