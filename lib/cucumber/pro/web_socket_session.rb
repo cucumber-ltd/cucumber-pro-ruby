@@ -64,7 +64,8 @@ module Cucumber
 
         def initialize(url, queue, logger, error_handler)
           @url, @queue, @logger, @error_handler = url, queue, logger, error_handler
-          open
+          @em = Thread.new { start_client }
+          @pending = 0
         end
 
         def close
@@ -80,41 +81,40 @@ module Cucumber
 
         attr_reader :logger, :queue, :error_handler
 
-        def open
-          @em = Thread.new do
-            begin
-              EM.run { start_ws_client }
-            rescue => exception
-              error_handler.error exception
-            end
-          end
-        end
-
-        def start_ws_client
-          logger.debug [:ws, :start]
-          @ws = Faye::WebSocket::Client.new(@url)
-
-          @ws.on(:open) do
-            logger.debug [:ws, :open]
-            process_queue
-          end
-
-          @ws.on(:error) do
-            logger.error [:ws, :error]
-          end
-
-          @ws.on(:message) do |event|
-            logger.debug [:ws, :message, event.data]
-          end
-
-          @ws.on(:close) do |event|
-            logger.debug [:ws, :close]
-            raise Error::AccessDenied.new if event.code == 401
-            @ws = nil
-            EM.stop_event_loop
+        def start_client
+          EM.run do
+            logger.debug [:ws, :start]
+            @ws = Faye::WebSocket::Client.new(@url)
+            @ws.on :open,    &self.method(:on_open)
+            @ws.on :error,   &self.method(:on_error)
+            @ws.on :message, &self.method(:on_message)
+            @ws.on :close,   &self.method(:on_close)
           end
           self
+        rescue => exception
+          error_handler.error exception
         end
+
+        def on_open(event)
+          logger.debug [:ws, :open]
+          process_queue
+        end
+
+        def on_error(event)
+          logger.error [:ws, :error]
+        end
+
+        def on_message(event)
+          logger.debug [:ws, :message, event.data]
+        end
+
+        def on_close(event)
+          logger.debug [:ws, :close]
+          raise Error::AccessDenied.new if event.code == 401
+          @ws = nil
+          EM.stop_event_loop
+        end
+
 
         def process_queue
           queue.pop.call unless queue.empty?
