@@ -1,3 +1,8 @@
+require 'rubygems'
+require 'bundler'
+Bundler::GemHelper.install_tasks
+
+desc 'Run tests'
 task default: :cucumber
 
 ENV['cucumber_pro_log_path'] = File.dirname(__FILE__) + '/tmp/test.log'
@@ -6,6 +11,7 @@ task :cucumber do
   sh 'cucumber'
 end
 
+desc 'Run repeated tests to check for async bugs'
 task :soak, :repetitions do |task, args|
   reps = args[:repetitions] || 10
   results = reps.to_i.times.map do
