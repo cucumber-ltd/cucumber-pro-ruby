@@ -73,7 +73,7 @@ module Cucumber
         @session.send({
           path: path,
           location: line.to_i,
-          mime_type: 'application/vnd.cucumber.test-case-result+json',
+          mime_type: 'application/vnd.cucumber-pro.test-case-result+json',
           body: { status: status }
         })
       end
