@@ -10,6 +10,8 @@ After do
 end
 
 Given(/^a git repo$/) do
+  run_simple "git config user.email \"test@test.com\""
+  run_simple "git config user.name \"Test user\""
   run_simple "git init"
   run_simple "git commit --allow-empty -m 'Initial commit'"
   run_simple "git remote add origin #{repo_url}"
