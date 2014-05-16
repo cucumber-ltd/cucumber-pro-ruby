@@ -17,7 +17,7 @@ module Cucumber
       def initialize(url, logger)
         @url, @logger = url, logger
         @queue = Queue.new
-        @socket = SocketWriter.new(url, logger, self) do
+        @socket = SocketWorker.new(url, logger, self) do
           queue.pop.call if !queue.empty?
         end
       end
@@ -25,25 +25,28 @@ module Cucumber
       def send(message)
         logger.debug [:session, :send, message]
         queue.push -> { socket.send(message.to_json) }
+        self
       end
 
       def close
         logger.debug [:session, :close]
         queue.push -> { socket.close }
         loop until socket.closed?
+        self
       end
 
       def error(exception)
         logger.fatal exception
         $stderr.puts "Cucumber Pro failed to send results: #{exception}"
         $stderr.puts exception.backtrace.join("\n")
+        self
       end
 
       private
 
       attr_reader :logger, :queue, :socket
 
-      class SocketWriter
+      class SocketWorker
 
         def initialize(url, logger, error_handler, &next_task)
           @url, @logger, @error_handler = url, logger, error_handler
@@ -53,10 +56,12 @@ module Cucumber
 
         def close
           @ws.close
+          self
         end
 
         def send(data)
           @ws.send data
+          self
         end
 
         def closed?
@@ -84,14 +89,17 @@ module Cucumber
         def on_open(event)
           logger.debug [:ws, :open]
           process_tasks
+          self
         end
 
         def on_error(event)
           logger.error [:ws, :error]
+          self
         end
 
         def on_message(event)
           logger.debug [:ws, :message, event.data]
+          self
         end
 
         def on_close(event)
@@ -99,11 +107,13 @@ module Cucumber
           raise Error::AccessDenied.new if event.code == 401
           @ws = nil
           EM.stop_event_loop
+          self
         end
 
         def process_tasks
           next_task.call
           EM.next_tick { process_tasks }
+          self
         end
 
       end
