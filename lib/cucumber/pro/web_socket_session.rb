@@ -4,14 +4,6 @@ require 'eventmachine'
 
 module Cucumber
   module Pro
-    module Error
-      AccessDenied = Class.new(StandardError) {
-        def initialize
-          super "Access denied."
-        end
-      }
-    end
-
     class WebSocketSession
 
       def initialize(url, logger)
@@ -104,7 +96,9 @@ module Cucumber
 
         def on_close(event)
           logger.debug [:ws, :close]
-          raise Error::AccessDenied.new if event.code == 401
+          if access_denied?(event)
+            raise Error::AccessDenied.new 
+          end
           @ws = nil
           EM.stop_event_loop
           self
@@ -114,6 +108,12 @@ module Cucumber
           next_task.call
           EM.next_tick { process_tasks }
           self
+        end
+
+        def access_denied?(event)
+          event.code == 1002 && 
+            event.reason == \
+            "Error during WebSocket handshake: Unexpected response code: 401"
         end
 
       end

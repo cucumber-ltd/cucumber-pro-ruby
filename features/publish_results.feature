@@ -1,6 +1,11 @@
 @announce
 Feature: Publish results
 
+  Background:
+    Given I set the environment variables to:
+      | variable           | value       |
+      | CUCUMBER_PRO_TOKEN | valid-token |
+
   Scenario: A couple of scenarios
     Given a git repo
     And a feature "features/test.feature" with:

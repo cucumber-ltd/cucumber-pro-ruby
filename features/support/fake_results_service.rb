@@ -3,7 +3,7 @@ require 'json'
 
 module FakeResultsService
   PORT = 5000
-  VALID_TOKEN = 'valid-cucumber-pro-token'
+  VALID_TOKEN = 'valid-token'
 
   class << self
     def messages
@@ -91,7 +91,6 @@ else
 require 'cucumber/pro'
 Cucumber::Pro.configure do |c|
   c.url = 'ws://localhost:#{FakeResultsService::PORT}'
-  c.token = "#{FakeResultsService::VALID_TOKEN}"
 end
     END
   end
