@@ -8,8 +8,16 @@ module Cucumber
 
       def initialize(url, logger)
         @url, @logger = url, logger
+        create_socket = -> worker {
+          ws = Faye::WebSocket::Client.new(@url)
+          ws.on :open,    &worker.method(:on_open)
+          ws.on :error,   &worker.method(:on_error)
+          ws.on :message, &worker.method(:on_message)
+          ws.on :close,   &worker.method(:on_close)
+          ws
+        }
         @queue = Queue.new
-        @socket = SocketWorker.new(url, logger, self) do
+        @socket = SocketWorker.new(create_socket, logger, self) do
           queue.pop.call if !queue.empty?
         end
       end
@@ -40,19 +48,26 @@ module Cucumber
 
       class SocketWorker
 
-        def initialize(url, logger, error_handler, &next_task)
-          @url, @logger, @error_handler = url, logger, error_handler
+        def initialize(create_socket, logger, error_handler, &next_task)
+          @create_socket, @logger, @error_handler = create_socket, logger, error_handler
           @next_task = next_task
           @em = Thread.new { start_client }
+          @ack_count = 0
         end
 
         def close
-          @ws.close
+          loop until @ws
+          if @ack_count == 0
+            @ws.close
+          else
+            EM.next_tick { close }
+          end
           self
         end
 
         def send(data)
           @ws.send data
+          @ack_count += 1
           self
         end
 
@@ -67,11 +82,7 @@ module Cucumber
         def start_client
           EM.run do
             logger.debug [:ws, :start]
-            @ws = Faye::WebSocket::Client.new(@url)
-            @ws.on :open,    &self.method(:on_open)
-            @ws.on :error,   &self.method(:on_error)
-            @ws.on :message, &self.method(:on_message)
-            @ws.on :close,   &self.method(:on_close)
+            @ws = @create_socket.call(self)
           end
           self
         rescue => exception
@@ -91,6 +102,7 @@ module Cucumber
 
         def on_message(event)
           logger.debug [:ws, :message, event.data]
+          @ack_count -= 1
           self
         end
 
