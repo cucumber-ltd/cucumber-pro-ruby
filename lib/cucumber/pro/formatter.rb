@@ -1,4 +1,5 @@
 require 'cucumber/pro/scm'
+require 'securerandom'
 
 module Cucumber
   module Pro
@@ -79,7 +80,7 @@ module Cucumber
       end
 
       def get_run_id
-        Time.now.to_i
+        SecureRandom.hex 
       end
 
     end
