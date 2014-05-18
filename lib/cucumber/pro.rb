@@ -7,8 +7,8 @@ module Cucumber
   module Pro
 
     class << self
-      def new(*)
-        session = WebSocketSession.new(url, config.logger)
+      def new(runtime, output, options)
+        session = WebSocketSession.new(url, logger(output))
         Formatter.new(session)
       end
 
@@ -26,6 +26,10 @@ module Cucumber
         token = config.token || raise(Error::MissingToken.new)
         config.url + "?token=#{token}"
       end
+
+      def logger(output)
+        config.logger || Logger.new(output)
+      end
     end
 
     class Config
@@ -35,7 +39,6 @@ module Cucumber
     # Default config
     configure do |config|
       config.url    = 'wss://results.cucumber.pro/ws'
-      config.logger = Logger.new(ENV['cucumber_pro_log_path'] || STDOUT)
       config.token  = ENV['CUCUMBER_PRO_TOKEN']
     end
 
