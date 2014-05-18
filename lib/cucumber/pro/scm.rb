@@ -9,33 +9,39 @@ module Cucumber
 
         def self.find(path = Dir.pwd)
           if Dir.entries(path).include? '.git'
-            new(path)
+            GitRepo.new(path)
           else
             raise NoGitRepoFound if path == '/'
             find File.expand_path(path + '/..')
           end
         end
 
+      end
+
+      class GitRepo
+
         def initialize(path)
           @path = path
         end
 
         def remote
-          cmd('git config --get remote.origin.url')
+          cmd('git config --get remote.origin.url').last
         end
 
         def branch
-          cmd("git branch --contains #{rev}")
+          cmd("git branch --contains #{rev}").
+            reject { |b| /^\* \(detached from \w+\)/.match b }.
+            first
         end
 
         def rev
-          cmd("git rev-parse HEAD")
+          cmd("git rev-parse HEAD").last
         end
 
         private
 
         def cmd(cmd)
-          Dir.chdir(@path) { `#{cmd}` }.strip
+          Dir.chdir(@path) { `#{cmd}` }.lines.map &:strip
         end
       end
     end
