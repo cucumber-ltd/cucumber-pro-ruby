@@ -29,9 +29,10 @@ module Cucumber
         end
 
         def branch
-          cmd("git branch --contains #{rev}").
+          branch = cmd("git branch --contains #{rev}").
             reject { |b| /^\* \(detached from \w+\)/.match b }.
-            first
+            first.
+            gsub(/^\* /, '')
         end
 
         def rev
