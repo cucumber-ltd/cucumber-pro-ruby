@@ -1,6 +1,6 @@
 require 'logger'
 require 'cucumber/pro/formatter'
-require 'cucumber/pro/web_socket_session'
+require 'cucumber/pro/web_socket/session'
 require 'cucumber/pro/version'
 
 module Cucumber
@@ -8,7 +8,7 @@ module Cucumber
 
     class << self
       def new(runtime, output, options)
-        session = WebSocketSession.new(url, logger(output))
+        session = WebSocket::Session.new(url, logger(output))
         Formatter.new(session)
       end
 

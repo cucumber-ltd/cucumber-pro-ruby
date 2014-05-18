@@ -1,11 +1,9 @@
-require 'cucumber/pro/web_socket_session'
+require 'cucumber/pro/web_socket/session'
 require 'logger'
 
-module Cucumber::Pro
-  describe WebSocketSession do
-  end
+module Cucumber::Pro::WebSocket
 
-  describe WebSocketSession::SocketWorker do
+  describe Worker do
     let(:logger) { Logger.new(STDOUT) }
     before { logger.level = Logger::INFO }
 
@@ -18,7 +16,7 @@ module Cucumber::Pro
         end
         socket
       }
-      worker = WebSocketSession::SocketWorker.new(create_socket, logger, logger) do
+      worker = Worker.new(create_socket, logger, logger) do
         p :work
       end
       worker.close

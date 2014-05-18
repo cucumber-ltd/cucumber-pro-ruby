@@ -4,49 +4,52 @@ require 'eventmachine'
 
 module Cucumber
   module Pro
-    class WebSocketSession
+    module WebSocket
 
-      def initialize(url, logger)
-        @url, @logger = url, logger
-        create_socket = -> worker {
-          ws = Faye::WebSocket::Client.new(@url)
-          ws.on :open,    &worker.method(:on_open)
-          ws.on :error,   &worker.method(:on_error)
-          ws.on :message, &worker.method(:on_message)
-          ws.on :close,   &worker.method(:on_close)
-          ws
-        }
-        @queue = Queue.new
-        @socket = SocketWorker.new(create_socket, logger, self) do
-          queue.pop.call if !queue.empty?
+      class Session
+
+        def initialize(url, logger)
+          @url, @logger = url, logger
+          create_socket = -> worker {
+            ws = Faye::WebSocket::Client.new(@url)
+            ws.on :open,    &worker.method(:on_open)
+            ws.on :error,   &worker.method(:on_error)
+            ws.on :message, &worker.method(:on_message)
+            ws.on :close,   &worker.method(:on_close)
+            ws
+          }
+          @queue = Queue.new
+          @socket = Worker.new(create_socket, logger, self) do
+            queue.pop.call if !queue.empty?
+          end
         end
+
+        def send(message)
+          logger.debug [:session, :send, message]
+          queue.push -> { socket.send(message.to_json) }
+          self
+        end
+
+        def close
+          logger.debug [:session, :close]
+          queue.push -> { socket.close }
+          loop until socket.closed?
+          self
+        end
+
+        def error(exception)
+          logger.fatal exception
+          $stderr.puts "Cucumber Pro failed to send results: #{exception}"
+          $stderr.puts exception.backtrace.join("\n")
+          self
+        end
+
+        private
+
+        attr_reader :logger, :queue, :socket
       end
 
-      def send(message)
-        logger.debug [:session, :send, message]
-        queue.push -> { socket.send(message.to_json) }
-        self
-      end
-
-      def close
-        logger.debug [:session, :close]
-        queue.push -> { socket.close }
-        loop until socket.closed?
-        self
-      end
-
-      def error(exception)
-        logger.fatal exception
-        $stderr.puts "Cucumber Pro failed to send results: #{exception}"
-        $stderr.puts exception.backtrace.join("\n")
-        self
-      end
-
-      private
-
-      attr_reader :logger, :queue, :socket
-
-      class SocketWorker
+      class Worker
 
         def initialize(create_socket, logger, error_handler, &next_task)
           @create_socket, @logger, @error_handler = create_socket, logger, error_handler
