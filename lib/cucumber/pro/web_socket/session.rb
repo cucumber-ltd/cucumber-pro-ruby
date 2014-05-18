@@ -19,20 +19,18 @@ module Cucumber
             ws
           }
           @queue = Queue.new
-          @socket = Worker.new(create_socket, logger, self) do
-            queue.pop.call if !queue.empty?
-          end
+          @socket = Worker.new(create_socket, logger, self)
         end
 
         def send(message)
           logger.debug [:session, :send, message]
-          queue.push -> { socket.send(message.to_json) }
+          socket.send(message.to_json)
           self
         end
 
         def close
           logger.debug [:session, :close]
-          queue.push -> { socket.close }
+          socket.close
           loop until socket.closed?
           self
         end
@@ -51,26 +49,29 @@ module Cucumber
 
       class Worker
 
-        def initialize(create_socket, logger, error_handler, &next_task)
+        def initialize(create_socket, logger, error_handler)
           @create_socket, @logger, @error_handler = create_socket, logger, error_handler
-          @next_task = next_task
+          @q = Queue.new
           @em = Thread.new { start_client }
           @ack_count = 0
         end
 
         def close
-          loop until @ws
-          if @ack_count == 0
-            @ws.close
-          else
-            EM.next_tick { close }
-          end
+          @q << -> {
+            if @ack_count == 0
+              @ws.close
+            else
+              EM.next_tick { close }
+            end
+          }
           self
         end
 
         def send(data)
-          @ws.send data
-          @ack_count += 1
+          @q << -> {
+            @ws.send data
+            @ack_count += 1
+          }
           self
         end
 
@@ -120,7 +121,7 @@ module Cucumber
         end
 
         def process_tasks
-          next_task.call
+          @q.pop.call if !@q.empty?
           EM.next_tick { process_tasks }
           self
         end

@@ -3,12 +3,16 @@ require 'bundler'
 Bundler::GemHelper.install_tasks
 
 desc 'Run tests'
-task default: :cucumber
+task default: [:rspec, :cucumber]
 
 ENV['cucumber_pro_log_path'] = File.dirname(__FILE__) + '/tmp/test.log'
 
 task :cucumber do
   sh 'cucumber'
+end
+
+task :rspec do
+  sh 'rspec'
 end
 
 desc 'Run repeated tests to check for async bugs'
