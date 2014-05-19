@@ -8,7 +8,8 @@ module Cucumber
 
     class << self
       def new(runtime, output, options)
-        session = WebSocket::Session.new(url, logger(output))
+        create_logger(output)
+        session = WebSocket::Session.new(url, logger)
         Formatter.new(session)
       end
 
@@ -17,6 +18,9 @@ module Cucumber
       end
 
       private
+
+      attr_reader :logger
+      private :logger
 
       def config
         @config ||= Config.new
@@ -28,8 +32,8 @@ module Cucumber
         config.url + "?token=#{token}"
       end
 
-      def logger(output)
-        config.logger || Logger.new(output)
+      def create_logger(output)
+        @logger = config.logger || Logger.new(output)
       end
     end
 

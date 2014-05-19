@@ -23,5 +23,5 @@ Feature: Security
         Scenario:
           Given passing
       """
-    When I run `cucumber -f Cucumber::Pro -o /dev/null -f pretty`
+    When I run `cucumber -f Cucumber::Pro`
     And the stderr should contain "Missing access token"
