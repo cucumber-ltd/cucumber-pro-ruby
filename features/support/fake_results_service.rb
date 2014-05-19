@@ -1,5 +1,6 @@
 require 'faye/websocket'
 require 'json'
+require 'logger'
 
 module FakeResultsService
   PORT = 5000
@@ -15,7 +16,7 @@ module FakeResultsService
     end
 
     def logger
-      $logger
+      $logger || Logger.new(STDOUT)
     end
   end
 

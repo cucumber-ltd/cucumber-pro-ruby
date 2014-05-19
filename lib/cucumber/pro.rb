@@ -38,7 +38,7 @@ module Cucumber
 
     # Default config
     configure do |config|
-      config.url    = 'wss://results.cucumber.pro/ws'
+      config.url    = ENV['CUCUMBER_PRO_URL'] || 'wss://results.cucumber.pro/ws'
       config.token  = ENV['CUCUMBER_PRO_TOKEN']
       ENV['cucumber_pro_log_path'].tap do |path|
         config.logger = Logger.new(path) if path
