@@ -4,4 +4,4 @@
 - Allow configuration of git remote
 - Build on multiple Ruby versions
 - Build against Cucumber 2.0 and 1.3.x
-
+- SVN support
