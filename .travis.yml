@@ -9,4 +9,3 @@ notifications:
 env:
   global:
     secure: GTHou5Qwb0p/hx7pQNg004oZ/PHatnKRQJSjJ0/M6D0REgnd2zVuYD2W6lvFqH5ego5c5+Kcrv8l9f6Iq1XXXotdjN3TiNQhnzbiw/ShEYSNH9HTwRFjJ307nOSRSfyYE2uMUeRnrtowdg2H0W+CG630g9VOnipDAqWm+g7IU0A=
-script: bundle exec cucumber -f Cucumber::Pro -o cucumber-pro.log -f pretty features/security.feature:18 ; cat cucumber-pro.log
