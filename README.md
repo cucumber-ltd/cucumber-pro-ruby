@@ -14,6 +14,6 @@ gem 'cucumber-pro'
 Now run Cucumber using the `Cucumber::Pro` formatter:
 
 ```
-CUCUMBER_PRO_TOKEN=<your auth token> cucumber -f Cucumber::Pro -f pretty
+CUCUMBER_PRO_TOKEN=<your auth token> cucumber -f Cucumber::Pro -o /dev/null -f pretty
 ```
 
