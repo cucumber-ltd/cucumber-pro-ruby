@@ -20,7 +20,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'rspec',   '>= 2.14.1'
   s.add_development_dependency 'cucumber'
   s.add_development_dependency 'aruba'
-  s.add_development_dependency 'thin'
+  s.add_development_dependency 'puma'
   s.add_development_dependency 'rack'
   s.add_development_dependency 'anticipate'
 

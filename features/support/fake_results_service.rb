@@ -19,54 +19,62 @@ module FakeResultsService
     end
   end
 
-  logger = self.logger
-
-  SocketApp = lambda do |env|
-    logger.debug [:server, :starting]
-    ws = Faye::WebSocket.new(env)
-
-    ws.on :open do |event|
-      logger.debug [:server, :open]
-    end
-
-    ws.on :message do |event|
-      logger.debug [:server, :message, event.data]
-      FakeResultsService.messages << JSON.parse(event.data)
-      ws.send 'ok'
-    end
-
-    ws.on :close do |event|
-      logger.debug [:server, :close]
-    end
-
-    # Return async Rack response
-    ws.rack_response
-  end
-
-  class Security
-    def initialize(app)
-      @app = app
+  class SocketApp 
+    def initialize(logger)
+      @logger = logger
     end
 
     def call(env)
       request = Rack::Request.new(env)
       params = request.params
       return [401, [], {}] unless params['token'] == VALID_TOKEN
-      @app.call(env)
+
+      logger.debug [:server, :starting]
+      ws = Faye::WebSocket.new(env)
+
+      ws.on :open do |event|
+        logger.debug [:server, :open]
+      end
+
+      ws.on :message do |event|
+        logger.debug [:server, :message, event.data]
+        FakeResultsService.messages << JSON.parse(event.data)
+        ws.send 'ok'
+      end
+
+      ws.on :error do |event|
+        logger.debug [:server, :error, event.code, event.reason]
+      end
+
+      ws.on :close do |event|
+        logger.debug [:server, :close]
+      end
+
+      # Return async Rack response
+      ws.rack_response
     end
+
+    def log(message)
+      logger.debug(message)
+    end
+
+    attr_reader :logger
+    private :logger
   end
 
-  require 'thin'
+  require 'puma'
   require 'rack'
   require 'eventmachine'
-  Faye::WebSocket.load_adapter 'thin'
-  Thin::Logging.logger = logger
   $em = Thread.new do
     begin
       EM.run do
-        thin = Rack::Handler.get('thin')
-        app = Security.new(SocketApp)
-        thin.run app, :Port => PORT
+        app = SocketApp.new(FakeResultsService.logger)
+        events = Puma::Events.new(StringIO.new, StringIO.new)
+        binder = Puma::Binder.new(events)
+        binder.parse(["tcp://0.0.0.0:#{PORT}"], app)
+        @server = Puma::Server.new(app, events)
+        @server.binder = binder
+        @server.run
         trap("INT") { exit }
       end
     rescue => exception
