@@ -73,10 +73,18 @@ module FakeResultsService
         events = Puma::Events.new(StringIO.new, StringIO.new)
         binder = Puma::Binder.new(events)
         binder.parse(["tcp://0.0.0.0:#{PORT}"], app)
-        @server = Puma::Server.new(app, events)
-        @server.binder = binder
-        @server.run
-        trap("INT") { exit }
+        server = Puma::Server.new(app, events)
+        server.binder = binder
+        server.run
+        trap("INT") do 
+          puts "Stopping..."
+          server.stop(true)
+          EM.stop_event_loop
+          exit
+        end
+        at_exit do
+          server.stop(true)
+        end
       end
     rescue => exception
       logger.fatal(exception)
