@@ -27,13 +27,17 @@ module Cucumber
       end
 
       def url
-        logger.debug "TOKEN: #{config.token.class}"
-        token = config.token || raise(Error::MissingToken.new)
         config.url + "?token=#{token}"
       end
 
       def create_logger(output)
         @logger = config.logger || Logger.new(output)
+      end
+
+      def token
+        result = (config.token || '')
+        raise(Error::MissingToken.new) if result.empty?
+        result
       end
     end
 

@@ -1,10 +1,12 @@
 $logger = Logger.new(ENV['cucumber_pro_log_path'] || STDOUT)
 $logger.debug '--- starting tests ---'
 
-# You don't normally need this in your test suite, but we need to make sure this environment
-# variable has been read so we can delete it, because otherwise it will interfere with other
-# parts of our test suite.
-require 'cucumber/pro'
+# For some reason JRuby / ChildProcess won't let us delete an environment variable, 
+# but it will let us overwrite it, so we make do with that.
 Before do
-  ENV.delete('CUCUMBER_PRO_TOKEN')
+  if RUBY_PLATFORM =~ /java/
+    set_env 'CUCUMBER_PRO_TOKEN', ''
+  else
+    ENV.delete('CUCUMBER_PRO_TOKEN')
+  end
 end
