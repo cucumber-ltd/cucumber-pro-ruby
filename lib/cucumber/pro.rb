@@ -23,6 +23,7 @@ module Cucumber
       end
 
       def url
+        logger.debug "TOKEN: #{config.token.class}"
         token = config.token || raise(Error::MissingToken.new)
         config.url + "?token=#{token}"
       end

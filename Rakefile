@@ -5,8 +5,6 @@ Bundler::GemHelper.install_tasks
 desc 'Run tests'
 task default: [:rspec, :cucumber]
 
-ENV['cucumber_pro_log_path'] = File.dirname(__FILE__) + '/tmp/test.log'
-
 task :cucumber do
   sh 'cucumber'
 end
