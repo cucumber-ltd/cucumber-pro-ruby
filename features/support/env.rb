@@ -5,4 +5,8 @@ $logger.debug '--- starting tests ---'
 # variable has been read so we can delete it, because otherwise it will interfere with other
 # parts of our test suite.
 require 'cucumber/pro'
+p '-- before --'
+puts `env`
 ENV.delete('CUCUMBER_PRO_TOKEN')
+p '-- after --'
+puts `env`
