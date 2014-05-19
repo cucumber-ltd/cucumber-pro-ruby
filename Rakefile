@@ -5,6 +5,11 @@ Bundler::GemHelper.install_tasks
 desc 'Run tests'
 task default: [:rspec, :cucumber]
 
+# Because https://github.com/eventmachine/eventmachine/issues/34
+if ENV['TRAVIS'] && RUBY_PLATFORM =~ /java/
+  ENV['CUCUMBER_PRO_URL']="ws://results.cucumber.pro/ws"
+end
+
 require 'cucumber/rake/task'
 Cucumber::Rake::Task.new do |t|
   t.cucumber_opts = ""
