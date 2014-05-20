@@ -7,6 +7,6 @@ Before do
 end
 
 Before do
-  @aruba_timeout_seconds = (RUBY_PLATFORM =~ /java/) ? 20 : 5
+  @aruba_timeout_seconds = (RUBY_PLATFORM =~ /java/) ? 20 : 10
 end
 
