@@ -1,4 +1,5 @@
 require 'cucumber/pro/scm'
+require 'cucumber/pro/info'
 require 'securerandom'
 
 module Cucumber
@@ -57,7 +58,8 @@ module Cucumber
           repo_url: scm.remote,
           branch: scm.branch,
           rev: scm.rev,
-          group: get_run_id
+          group: get_run_id,
+          info: Info.new.to_h
         })
       end
 
@@ -80,7 +82,7 @@ module Cucumber
       end
 
       def get_run_id
-        SecureRandom.hex 
+        SecureRandom.hex
       end
 
     end
