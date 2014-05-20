@@ -70,5 +70,3 @@ module Cucumber
 
   end
 end
-
-
