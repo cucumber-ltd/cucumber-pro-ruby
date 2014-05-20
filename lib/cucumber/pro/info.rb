@@ -11,7 +11,8 @@ module Cucumber
           platform_version: "#{RbConfig::CONFIG['ruby_install_name']} #{RbConfig::CONFIG['ruby_version']}",
           tool_version: "cucumber-ruby #{Cucumber::VERSION}}",
           os_user: Etc.getlogin,
-          client_version: "cucumber-pro-ruby #{File.read(File.dirname(__FILE__) + '/version').strip}" 
+          client_version: "cucumber-pro-ruby #{File.read(File.dirname(__FILE__) + '/version').strip}",
+          cmd: ([$0] + ARGV).join(' ')
         }
       end
     end
