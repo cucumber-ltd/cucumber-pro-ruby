@@ -1,7 +1,6 @@
 require 'logger'
 require 'cucumber/pro/formatter'
 require 'cucumber/pro/web_socket/session'
-require 'cucumber/pro/version'
 
 module Cucumber
   module Pro
