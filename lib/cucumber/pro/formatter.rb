@@ -54,6 +54,7 @@ module Cucumber
 
       def send_header
         working_copy = Scm::WorkingCopy.detect
+        working_copy.check_clean
         @session.send({
           repo_url: working_copy.repo_url,
           branch: working_copy.branch,
