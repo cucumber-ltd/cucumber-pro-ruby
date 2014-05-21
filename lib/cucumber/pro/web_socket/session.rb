@@ -11,7 +11,7 @@ module Cucumber
         def initialize(url, logger)
           @url, @logger = url, logger
           create_socket = -> worker {
-            ws = Faye::WebSocket::Client.new(@url)
+            ws = Faye::WebSocket::Client.new(@url, ping: 15)
             ws.on :open,    &worker.method(:on_open)
             ws.on :error,   &worker.method(:on_error)
             ws.on :message, &worker.method(:on_message)
