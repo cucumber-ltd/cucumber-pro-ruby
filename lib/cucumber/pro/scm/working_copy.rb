@@ -3,13 +3,13 @@ module Cucumber
 
     module Scm
 
-      class Repo
+      class WorkingCopy
 
         NoGitRepoFound = Class.new(StandardError)
 
-        def self.find(path = Dir.pwd)
+        def self.detect(path = Dir.pwd)
           if Dir.entries(path).include? '.git'
-            GitRepo.new(path)
+            GitWorkingCopy.new(path)
           else
             raise NoGitRepoFound if path == '/'
             find File.expand_path(path + '/..')
@@ -18,13 +18,13 @@ module Cucumber
 
       end
 
-      class GitRepo
+      class GitWorkingCopy
 
         def initialize(path)
           @path = path
         end
 
-        def remote
+        def repo_url
           cmd('git config --get remote.origin.url').last
         end
 

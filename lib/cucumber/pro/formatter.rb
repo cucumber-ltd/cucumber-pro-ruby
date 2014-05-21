@@ -1,4 +1,4 @@
-require 'cucumber/pro/scm'
+require 'cucumber/pro/scm/working_copy'
 require 'cucumber/pro/info'
 require 'securerandom'
 
@@ -53,11 +53,11 @@ module Cucumber
       private
 
       def send_header
-        scm = Scm::Repo.find
+        working_copy = Scm::WorkingCopy.detect
         @session.send({
-          repo_url: scm.remote,
-          branch: scm.branch,
-          rev: scm.rev,
+          repo_url: working_copy.repo_url,
+          branch: working_copy.branch,
+          rev: working_copy.rev,
           group: get_run_id,
           info: Info.new.to_h
         })

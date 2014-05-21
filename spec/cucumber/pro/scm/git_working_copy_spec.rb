@@ -1,10 +1,10 @@
-require 'cucumber/pro/scm'
+require 'cucumber/pro/scm/working_copy'
 require 'aruba/api'
 
 module Cucumber
   module Pro
     module Scm
-      describe GitRepo do
+      describe GitWorkingCopy do
         include Aruba::Api
         before do
           clean_current_dir
@@ -19,8 +19,8 @@ module Cucumber
             run_simple "git rev-parse HEAD"
             rev = all_stdout.split("\n").last
             run_simple "git checkout #{rev}"
-            repo = Repo.find(current_dir)
-            expect( repo.branch ).to eq "master"
+            working_copy = WorkingCopy.detect(current_dir)
+            expect( working_copy.branch ).to eq "master"
           end
         end
 
@@ -30,8 +30,8 @@ module Cucumber
             run_simple "git config user.email \"test@test.com\""
             run_simple "git config user.name \"Test user\""
             run_simple "git commit --allow-empty -m 'Initial commit'"
-            repo = Repo.find(current_dir)
-            expect( repo.branch ).to eq "master"
+            working_copy = WorkingCopy.detect(current_dir)
+            expect( working_copy.branch ).to eq "master"
           end
         end
       end
