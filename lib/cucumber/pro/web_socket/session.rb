@@ -11,7 +11,7 @@ module Cucumber
         def initialize(url, logger)
           @url, @logger = url, logger
           create_socket = -> worker {
-            ws = Faye::WebSocket::Client.new(@url, ping: 15)
+            ws = Faye::WebSocket::Client.new(@url, nil, ping: 15)
             ws.on :open,    &worker.method(:on_open)
             ws.on :error,   &worker.method(:on_error)
             ws.on :message, &worker.method(:on_message)
@@ -113,7 +113,7 @@ module Cucumber
         def on_close(event)
           logger.debug [:ws, :close]
           if access_denied?(event)
-            raise Error::AccessDenied.new 
+            raise Error::AccessDenied.new
           end
           @ws = nil
           EM.stop_event_loop
@@ -127,7 +127,7 @@ module Cucumber
         end
 
         def access_denied?(event)
-          event.code == 1002 && 
+          event.code == 1002 &&
             event.reason == \
             "Error during WebSocket handshake: Unexpected response code: 401"
         end
