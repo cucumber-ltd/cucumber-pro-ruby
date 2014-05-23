@@ -1,6 +1,7 @@
 require 'json'
 require 'faye/websocket'
 require 'eventmachine'
+require 'cucumber/pro/errors'
 
 module Cucumber
   module Pro
@@ -59,9 +60,20 @@ module Cucumber
         def close
           @q << -> {
             if @ack_count == 0
+              logger.debug [:ws, :close_socket]
+              EM.cancel_timer(@close_timeout)
               @ws.close
             else
               EM.next_tick { close }
+              if !@close_timeout
+                logger.debug [:ws, :set_close_timeout]
+                @close_timeout = EM.add_timer(1) { 
+                  logger.debug [:ws, :fire_close_timeout, @error_handler]
+                  @error_handler.error Error::Timeout.new
+                  logger.debug [:ws, :fired_close_temeout]
+                  @ws.close
+                }
+              end
             end
           }
           self

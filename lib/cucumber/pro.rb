@@ -1,6 +1,7 @@
 require 'logger'
 require 'cucumber/pro/formatter'
 require 'cucumber/pro/web_socket/session'
+require 'cucumber/pro/errors'
 
 module Cucumber
   module Pro
@@ -51,20 +52,6 @@ module Cucumber
       ENV['cucumber_pro_log_path'].tap do |path|
         config.logger = Logger.new(path) if path
       end
-    end
-
-    module Error
-      AccessDenied = Class.new(StandardError) {
-        def initialize
-          super "Access denied."
-        end
-      }
-
-      MissingToken = Class.new(StandardError) {
-        def initialize
-          super "Missing access token. Please visit https://app.cucumber.pro/api-token for instructions."
-        end
-      }
     end
 
   end
