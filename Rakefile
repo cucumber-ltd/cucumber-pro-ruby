@@ -25,7 +25,7 @@ desc 'Run repeated tests to check for async bugs'
 task :soak, :repetitions do |task, args|
   reps = args[:repetitions] || 10
   results = reps.to_i.times.map do
-    `cucumber`
+    `rspec > tmp/test.log`
     print $? == 0 ? '.' : 'x'
     $?
   end

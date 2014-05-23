@@ -63,7 +63,7 @@ module Cucumber
             if @ack_count == 0
               close_websocket
             else
-              ensure_close_timeout_started
+              ensure_close_timer_started
               EM.next_tick { close }
             end
           }
@@ -86,13 +86,14 @@ module Cucumber
 
         attr_reader :logger, :error_handler, :next_task, :timeout
 
-        def ensure_close_timeout_started
+        def ensure_close_timer_started
           return if @close_timer
           logger.debug [:ws, :set_close_timeout, timeout]
           @close_timer = EM.add_timer(timeout) { handle_close_timeout }
         end
 
         def handle_close_timeout
+          logger.debug [:ws, :handle_close_timeout]
           return unless @ws
           error_handler.error Error::Timeout.new
           close_websocket

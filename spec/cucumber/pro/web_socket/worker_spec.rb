@@ -7,9 +7,9 @@ module Cucumber::Pro
     describe Worker do
       let(:good_data) { double('good data') }
       let(:error_handler) { double('error handler') }
-      let(:logger) { Logger.new(STDOUT) }
-      let(:socket) { FakeSocket.new }
-      let(:worker) { Worker.new(self.method(:create_fake_socket), logger, error_handler, timeout: 1) }
+      let(:logger) { Logger.new(ENV['CUCUMBER_PRO_LOG_PATH'] || STDOUT) }
+      let!(:socket) { SpySocket.new }
+      let(:worker) { Worker.new(self.method(:create_fake_socket), logger, error_handler, timeout: 0.5) }
 
       before { logger.level = Logger::DEBUG }
 
@@ -48,14 +48,14 @@ module Cucumber::Pro
       end
 
 
-      class FakeSocket
+      class SpySocket
         include RSpec::Mocks::ExampleMethods
 
         attr_accessor :worker
         attr_reader :data
 
         def initialize
-          @data = []
+          @q = Queue.new
         end
 
         def close
@@ -63,7 +63,8 @@ module Cucumber::Pro
         end
 
         def send(data)
-          @data << data
+          @q << data
+          self
         end
 
         def send_ack
@@ -71,11 +72,20 @@ module Cucumber::Pro
           worker.method(:on_message).call(event)
         end
 
+        def data
+          @data ||= []
+          while !@q.empty?
+            @data << @q.pop
+          end
+          @data
+        end
+
         private
 
         def ws_event(code, data = {})
           double('ws event', code: 1000, data: data)
         end
+
       end
 
       require 'anticipate'
