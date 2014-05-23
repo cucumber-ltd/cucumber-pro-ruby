@@ -9,7 +9,7 @@ module Cucumber
     class << self
       def new(runtime, output, options)
         create_logger(output)
-        session = WebSocket::Session.new(url, logger)
+        session = WebSocket::Session.new(url, logger, timeout: config.timeout)
         Formatter.new(session)
       end
 
@@ -42,7 +42,7 @@ module Cucumber
     end
 
     class Config
-      attr_accessor :url, :logger, :token
+      attr_accessor :url, :logger, :token, :timeout
     end
 
     # Default config
@@ -52,6 +52,7 @@ module Cucumber
       ENV['cucumber_pro_log_path'].tap do |path|
         config.logger = Logger.new(path) if path
       end
+      config.timeout = 5
     end
 
   end

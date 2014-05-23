@@ -9,7 +9,7 @@ module Cucumber::Pro
       let(:error_handler) { double('error handler') }
       let(:logger) { Logger.new(STDOUT) }
       let(:socket) { FakeSocket.new }
-      let(:worker) { Worker.new(self.method(:create_fake_socket), logger, error_handler) }
+      let(:worker) { Worker.new(self.method(:create_fake_socket), logger, error_handler, timeout: 1) }
 
       before { logger.level = Logger::DEBUG }
 
@@ -36,6 +36,8 @@ module Cucumber::Pro
           expect( worker ).to be_closed
         end
       end
+
+      it "throws an error if the server responds with an error"
 
       def create_fake_socket(worker)
         socket.worker = worker

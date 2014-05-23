@@ -9,7 +9,7 @@ module Cucumber
 
       class Session
 
-        def initialize(url, logger)
+        def initialize(url, logger, options)
           @url, @logger = url, logger
           create_socket = -> worker {
             ws = Faye::WebSocket::Client.new(@url, nil, ping: 15)
@@ -20,7 +20,7 @@ module Cucumber
             ws
           }
           @queue = Queue.new
-          @socket = Worker.new(create_socket, logger, self)
+          @socket = Worker.new(create_socket, logger, self, options)
         end
 
         def send(message)
@@ -50,8 +50,9 @@ module Cucumber
 
       class Worker
 
-        def initialize(create_socket, logger, error_handler)
+        def initialize(create_socket, logger, error_handler, options = {})
           @create_socket, @logger, @error_handler = create_socket, logger, error_handler
+          @timeout = options.fetch(:timeout) { raise ArgumentError("Please specify timeout") }
           @q = Queue.new
           @em = Thread.new { start_client }
           @ack_count = 0
@@ -60,20 +61,10 @@ module Cucumber
         def close
           @q << -> {
             if @ack_count == 0
-              logger.debug [:ws, :close_socket]
-              EM.cancel_timer(@close_timeout)
-              @ws.close
+              close_websocket
             else
+              ensure_close_timeout_started
               EM.next_tick { close }
-              if !@close_timeout
-                logger.debug [:ws, :set_close_timeout]
-                @close_timeout = EM.add_timer(1) { 
-                  logger.debug [:ws, :fire_close_timeout, @error_handler]
-                  @error_handler.error Error::Timeout.new
-                  logger.debug [:ws, :fired_close_temeout]
-                  @ws.close
-                }
-              end
             end
           }
           self
@@ -93,7 +84,24 @@ module Cucumber
 
         private
 
-        attr_reader :logger, :error_handler, :next_task
+        attr_reader :logger, :error_handler, :next_task, :timeout
+
+        def ensure_close_timeout_started
+          return if @close_timer
+          logger.debug [:ws, :set_close_timeout, timeout]
+          @close_timer = EM.add_timer(timeout) { handle_close_timeout }
+        end
+
+        def handle_close_timeout
+          return unless @ws
+          error_handler.error Error::Timeout.new
+          close_websocket
+        end
+
+        def close_websocket
+          logger.debug [:ws, :close_socket]
+          @ws.close
+        end
 
         def start_client
           EM.run do
