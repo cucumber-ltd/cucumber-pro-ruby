@@ -28,7 +28,7 @@ module Cucumber::Pro
         end
       end
 
-      it "throws an error and closes the socket if all messages are not acknowledged within a timeout period" do
+      it "throws an error and closes if all messages are not acknowledged within a timeout period" do
         expect( error_handler ).to receive(:error).with(Error::Timeout.new)
         worker.send(good_data)
         worker.close
