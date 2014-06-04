@@ -10,7 +10,7 @@ module Cucumber
 
       MissingToken = Class.new(StandardError) {
         def initialize
-          super "Missing access token. Please visit https://app.cucumber.pro/api-token for instructions."
+          super "Missing access token. Please visit https://app.cucumber.pro/my/profile for instructions."
         end
       }
 
