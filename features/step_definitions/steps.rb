@@ -24,9 +24,9 @@ end
 
 Then(/^the results service should receive a header$/) do
   eventually do
-    results_service.messages.length.should > 0
+    expect(results_service.messages.length).to be > 0
   end
-  results_service.messages.first['repo_url'].should == repo_url
+  expect(results_service.messages.first['repo_url']).to eq repo_url
 end
 
 Then(/^the results service should receive these ([\w\-]+) results:$/) do |type, results|

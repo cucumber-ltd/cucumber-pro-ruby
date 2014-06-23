@@ -17,7 +17,7 @@ module Cucumber::Pro
         worker.send(good_data)
         worker.close
         eventually do
-          socket.data.last.should == good_data
+          expect(socket.data.last).to eq good_data
         end
         eventually do
           expect( worker ).to_not be_closed
