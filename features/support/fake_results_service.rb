@@ -63,28 +63,34 @@ module FakeResultsService
     private :logger
   end
 
+  run_em_server = -> {
+    app = SocketApp.new(FakeResultsService.logger)
+    events = Puma::Events.new(StringIO.new, StringIO.new)
+    binder = Puma::Binder.new(events)
+    binder.parse(["tcp://0.0.0.0:#{PORT}"], app)
+    server = Puma::Server.new(app, events)
+    server.binder = binder
+    server.run
+    trap("INT") do 
+      puts "Stopping..."
+      server.stop(true)
+      EM.stop_event_loop
+      exit
+    end
+    at_exit do
+      server.stop(true)
+    end
+  }
+
   require 'puma'
   require 'rack'
   require 'eventmachine'
+  require 'anticipate'
+  extend Anticipate
   $em = Thread.new do
     begin
-      EM.run do
-        app = SocketApp.new(FakeResultsService.logger)
-        events = Puma::Events.new(StringIO.new, StringIO.new)
-        binder = Puma::Binder.new(events)
-        binder.parse(["tcp://0.0.0.0:#{PORT}"], app)
-        server = Puma::Server.new(app, events)
-        server.binder = binder
-        server.run
-        trap("INT") do 
-          puts "Stopping..."
-          server.stop(true)
-          EM.stop_event_loop
-          exit
-        end
-        at_exit do
-          server.stop(true)
-        end
+      failing_after(3).tries do
+        EM.run &run_em_server
       end
     rescue => exception
       logger.fatal(exception)
