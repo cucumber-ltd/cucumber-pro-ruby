@@ -15,7 +15,13 @@ Given(/^a git repo$/) do
   run_simple "git config user.name \"Test user\""
   run_simple "git commit --allow-empty -m 'Initial commit'"
   run_simple "git remote add origin #{repo_url}"
-  run_simple "git config --get remote.origin.url"
+  # TODO: this is an experiment to fix flickering build on CI. May not be required.
+  # wait for the git repo to be created before continuing
+  eventually do
+    run "git config --get remote.origin.url" do |process|
+      expect(process.output.strip).to eq repo_url
+    end
+  end
 end
 
 Given(/^a feature "(.*?)" with:$/) do |path, content|
