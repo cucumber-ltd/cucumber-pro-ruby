@@ -6,6 +6,13 @@ require 'cucumber/pro/errors'
 module Cucumber
   module Pro
     module WebSocket
+      class NullSession
+        def send_message(message)
+        end
+
+        def close
+        end
+      end
 
       class Session
 
@@ -23,7 +30,7 @@ module Cucumber
           @socket = Worker.new(create_socket, logger, self, options)
         end
 
-        def send(message)
+        def send_message(message)
           logger.debug [:session, :send, message]
           socket.send(message.to_json)
           self

@@ -6,8 +6,9 @@ module Cucumber
   module Pro
 
     class Formatter
-      def initialize(session)
+      def initialize(session, working_copy)
         @session = session
+        @working_copy = working_copy
         send_header
       end
 
@@ -53,19 +54,17 @@ module Cucumber
       private
 
       def send_header
-        working_copy = Scm::WorkingCopy.detect
-        working_copy.check_clean
-        @session.send({
-          repo_url: working_copy.repo_url,
-          branch: working_copy.branch,
-          rev: working_copy.rev,
+        @session.send_message({
+          repo_url: @working_copy.repo_url,
+          branch: @working_copy.branch,
+          rev: @working_copy.rev,
           group: get_run_id,
           info: Info.new.to_h
         })
       end
 
       def send_step_result(path, line, status)
-        @session.send({
+        @session.send_message({
           path: path,
           location: line.to_i,
           mime_type: 'application/vnd.cucumber.test-step-result+json',
@@ -74,7 +73,7 @@ module Cucumber
       end
 
       def send_test_case_result(path, line, status)
-        @session.send({
+        @session.send_message({
           path: path,
           location: line.to_i,
           mime_type: 'application/vnd.cucumber-pro.test-case-result+json',

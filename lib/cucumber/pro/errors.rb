@@ -8,12 +8,6 @@ module Cucumber
         end
       }
 
-      MissingToken = Class.new(StandardError) {
-        def initialize
-          super "Missing access token. Please visit https://app.cucumber.pro/my/profile for instructions."
-        end
-      }
-
       Timeout = Class.new(StandardError) {
         def initialize
           super "Timed out waiting for a reply from the Cucumber Pro server."
