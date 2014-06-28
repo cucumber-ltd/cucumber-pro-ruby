@@ -5,12 +5,20 @@ require 'cucumber/pro/errors'
 
 module Cucumber
   module Pro
-
     class << self
       def new(runtime, output, options)
         create_logger(output)
-        session = WebSocket::Session.new(url, logger, timeout: config.timeout)
-        Formatter.new(session)
+
+        working_copy = Scm::WorkingCopy.detect
+
+        if token
+          working_copy.check_clean
+          session = WebSocket::Session.new(url, logger, timeout: config.timeout)
+        else
+          session = WebSocket::NullSession.new
+        end
+
+        Formatter.new(session, working_copy)
       end
 
       def configure
@@ -35,9 +43,7 @@ module Cucumber
       end
 
       def token
-        result = (config.token || '')
-        raise(Error::MissingToken.new) if result.empty?
-        result
+        config.token
       end
     end
 
