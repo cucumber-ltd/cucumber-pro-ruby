@@ -5,6 +5,7 @@ Feature: Publish results
     Given I set the environment variables to:
       | variable           | value       |
       | CUCUMBER_PRO_TOKEN | valid-token |
+      | BUILD_NUMBER       | 22          |
 
   Scenario: A couple of scenarios
     Given a git repo
@@ -52,4 +53,3 @@ Feature: Publish results
       | status | path                  | location |
       | passed | features/test.feature | 7        |
       | failed | features/test.feature | 8        |
-

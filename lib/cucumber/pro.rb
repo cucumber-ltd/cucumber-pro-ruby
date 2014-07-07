@@ -11,7 +11,7 @@ module Cucumber
 
         working_copy = Scm::WorkingCopy.detect
 
-        if token
+        if should_publish
           working_copy.check_clean
           session = WebSocket::Session.new(url, logger, timeout: config.timeout)
         else
@@ -45,16 +45,21 @@ module Cucumber
       def token
         config.token
       end
+
+      def should_publish
+        config.should_publish
+      end
     end
 
     class Config
-      attr_accessor :url, :logger, :token, :timeout
+      attr_accessor :url, :logger, :token, :should_publish, :timeout
     end
 
     # Default config
     configure do |config|
       config.url     = ENV['CUCUMBER_PRO_URL'] || 'wss://results.cucumber.pro/ws'
       config.token   = ENV['CUCUMBER_PRO_TOKEN']
+      config.should_publish = config.token && (ENV['BUILD_NUMBER'] || ENV['CI'])
       config.timeout = 5
       if file = ENV['CUCUMBER_PRO_LOG_FILE']
         config.logger = Logger.new(file)
