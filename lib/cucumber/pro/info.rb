@@ -9,7 +9,7 @@ module Cucumber
         {
           os: "#{RbConfig::CONFIG['host_os']} (#{RbConfig::CONFIG['host_cpu']})",
           platform_version: "#{RbConfig::CONFIG['ruby_install_name']} #{RbConfig::CONFIG['ruby_version']}",
-          tool_version: "cucumber-ruby #{Cucumber::VERSION}}",
+          tool_version: "cucumber-ruby #{Cucumber::VERSION}",
           os_user: Etc.getlogin,
           client_version: "cucumber-pro-ruby #{File.read(File.dirname(__FILE__) + '/version').strip}",
           cmd: ([$PROGRAM_NAME] + ARGV).join(' ')
