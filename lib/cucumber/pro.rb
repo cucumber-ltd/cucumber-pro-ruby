@@ -57,7 +57,7 @@ module Cucumber
 
     # Default config
     configure do |config|
-      config.url     = ENV['CUCUMBER_PRO_URL'] || 'wss://results.cucumber.pro/ws'
+      config.url     = ENV['CUCUMBER_PRO_RESULTS_URL'] || 'wss://results.cucumber.pro/ws'
       config.token   = ENV['CUCUMBER_PRO_TOKEN']
       config.should_publish = config.token && (ENV['BUILD_NUMBER'] || ENV['CI'])
       config.timeout = 5

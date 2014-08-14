@@ -8,7 +8,7 @@ task default: [:rspec, :cucumber]
 # Because https://github.com/eventmachine/eventmachine/issues/34
 if ENV['TRAVIS'] && RUBY_PLATFORM =~ /java/
   # Don't use TLS on JRuby
-  ENV['CUCUMBER_PRO_URL']="ws://results.cucumber.pro/ws"
+  ENV['CUCUMBER_PRO_RESULTS_URL']="ws://results.cucumber.pro/ws"
 end
 
 require 'cucumber/rake/task'
