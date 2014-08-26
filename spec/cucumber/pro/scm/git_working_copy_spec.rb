@@ -105,6 +105,7 @@ module Cucumber
         def clone_origin_repo
           run_simple "git clone ./origin local"
           cd "local"
+          git_config
         end
 
         def commit_and_push(filename = 'foo')
