@@ -36,6 +36,26 @@ module Cucumber
           expect( working_copy.branch ).to eq "master"
         end
 
+        it "figures out the name of the branch, even when the local branch has a different name" do
+          # create a bare origin repo
+          create_dir "origin"
+          cd "origin"
+          run_simple "git init --bare"
+          # clone it
+          cd ".."
+          run_simple "git clone ./origin local"
+          cd "local"
+          # make a commit and push it to origin master
+          run_simple "touch foo"
+          run_simple "git add ."
+          run_simple "git commit -m 'foo'"
+          run_simple "git push"
+          # check out the remote branch
+          run_simple "git checkout -b foo --track origin/master"
+          working_copy = WorkingCopy.detect(current_dir)
+          expect( working_copy.branch ).to eq "master"
+        end
+
         it "figures out the name of the branch when that's what's checked out" do
           in_current_dir do
             run_simple "git commit --allow-empty -m 'Initial commit'"

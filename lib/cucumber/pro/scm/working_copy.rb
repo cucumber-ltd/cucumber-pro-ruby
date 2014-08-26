@@ -36,10 +36,16 @@ module Cucumber
           cmd('git config --get remote.origin.url').last
         end
 
+        # tries to return the name of the origin branch that points to the current HEAD
         def branch
-          full_name = cmd("git name-rev --name-only HEAD")[0]
-          # /remotes/origin/master
-          full_name.gsub(/remotes\/\w+\//, '')
+          if remote_refs.empty?
+            # just use local branch name
+            return cmd("git name-rev --name-only HEAD")[0]
+          end
+          if remote_refs.length > 1
+            fail "Multiple remote branches point to this commit: #{remote_refs.join(',')}"
+          end
+          remote_refs.first.gsub(/refs\/remotes\/\w+\//, '')
         end
 
         def rev
@@ -52,6 +58,14 @@ module Cucumber
         end
 
         private
+
+        def remote_refs
+          @remote_refs ||= refs.select { |ref| ref =~ /refs\/remotes/ }
+        end
+
+        def refs
+          @refs ||= cmd("git show-ref | grep #{rev}").map { |output| output.split[1] }
+        end
 
         def cmd(cmd)
           Dir.chdir(@path) { `#{cmd}` }.lines.map &:strip
