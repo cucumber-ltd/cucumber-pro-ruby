@@ -16,41 +16,22 @@ module Cucumber
         end
 
         it "figures out the name of the branch, even on CI" do
-          # create a bare origin repo
-          create_dir "origin"
-          cd "origin"
-          run_simple "git init --bare"
-          # clone it
-          cd ".."
-          run_simple "git clone ./origin local"
-          cd "local"
-          # make a commit and push it to origin master
-          run_simple "touch foo"
-          run_simple "git add ."
-          run_simple "git commit -m 'foo'"
-          run_simple "git push"
+          create_origin_repo
+          clone_origin_repo
+          commit_and_push
           # check out the remote branch
           run_simple "git checkout remotes/origin/master"
+          # delete master branch
           run_simple "git branch -D master"
           working_copy = WorkingCopy.detect(current_dir)
           expect( working_copy.branch ).to eq "master"
         end
 
         it "figures out the name of the branch, even when the local branch has a different name" do
-          # create a bare origin repo
-          create_dir "origin"
-          cd "origin"
-          run_simple "git init --bare"
-          # clone it
-          cd ".."
-          run_simple "git clone ./origin local"
-          cd "local"
-          # make a commit and push it to origin master
-          run_simple "touch foo"
-          run_simple "git add ."
-          run_simple "git commit -m 'foo'"
-          run_simple "git push"
-          # check out the remote branch
+          create_origin_repo
+          clone_origin_repo
+          commit_and_push
+          # check out the remote branch with a different name
           run_simple "git checkout -b foo --track origin/master"
           working_copy = WorkingCopy.detect(current_dir)
           expect( working_copy.branch ).to eq "master"
@@ -82,16 +63,59 @@ module Cucumber
           end
         end
 
-        xit "detects unpushed changes" do
-          # This one is a little trickier to test. I think we may have to fetch commits
-          # from a repo first.
-          in_current_dir do
-            write_file "README.md", "# README"
-            run_simple "git add README.md"
-            run_simple "git commit -am 'I committed but that is not good enough'"
-            working_copy = WorkingCopy.detect(current_dir)
-            expect { working_copy.check_clean }.to raise_error(DirtyWorkingCopy, /Your current branch has commits that haven't been pushed to origin/)
-          end
+        it "detects unpushed changes to an existing file" do
+          create_origin_repo
+          clone_origin_repo
+          commit_and_push "foo"
+          write_file "foo", "contents"
+          run_simple "git add ."
+          run_simple "git commit -m 'foo'"
+          working_copy = WorkingCopy.detect(current_dir)
+          expect { working_copy.check_clean }.to raise_error(DirtyWorkingCopy, /Your current branch has commits that haven't been pushed to origin/)
+        end
+
+        it "detects unpushed changes to a new file" do
+          create_origin_repo
+          clone_origin_repo
+          commit_and_push "foo"
+          run_simple "touch bar"
+          run_simple "git add ."
+          run_simple "git commit -m 'bar'"
+          working_copy = WorkingCopy.detect(current_dir)
+          expect { working_copy.check_clean }.to raise_error(DirtyWorkingCopy, /Your current branch has commits that haven't been pushed to origin/)
+        end
+
+        it "detects a dirty working directory" do
+          create_origin_repo
+          clone_origin_repo
+          commit_and_push "foo"
+          write_file "foo", "contents"
+          working_copy = WorkingCopy.detect(current_dir)
+          expect { working_copy.check_clean }.to raise_error(DirtyWorkingCopy, /Please commit and push your changes before running with the Cucumber Pro formatter/)
+        end
+
+        def create_origin_repo
+          create_dir "origin"
+          cd "origin"
+          run_simple "git init --bare"
+          cd ".."
+        end
+
+        def clone_origin_repo
+          run_simple "git clone ./origin local"
+          cd "local"
+        end
+
+        def commit_and_push(filename = 'foo')
+          run_simple "touch #{filename}"
+          run_simple "git add ."
+          run_simple "git commit -m '#{commit_message}'"
+          run_simple "git push"
+        end
+
+        def commit_message
+          @commit_number ||= 0
+          "Commit message #{@commit_number += 1}"
         end
       end
     end
