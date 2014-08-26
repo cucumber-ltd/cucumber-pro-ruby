@@ -48,8 +48,9 @@ module Cucumber
           in_current_dir do
             run_simple "git commit --allow-empty -m 'Initial commit'"
             run_simple "git checkout -b remotes/foo/bar"
+            run_simple "git commit --allow-empty -m 'Another commit'"
             working_copy = WorkingCopy.detect(current_dir)
-            expect( working_copy.branch ).to eq "master"
+            expect( working_copy.branch ).to eq "remotes/foo/bar"
           end
         end
 

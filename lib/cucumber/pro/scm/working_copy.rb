@@ -60,7 +60,9 @@ module Cucumber
         private
 
         def remote_refs
-          @remote_refs ||= refs.select { |ref| ref =~ /refs\/remotes/ }
+          @remote_refs ||= refs.
+            select { |ref| ref =~ /refs\/remotes/ }.
+            reject { |ref| ref =~ /refs\/remotes\/\w+\/HEAD/ }
         end
 
         def refs
