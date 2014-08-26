@@ -16,19 +16,38 @@ module Cucumber
         end
 
         it "figures out the name of the branch, even on CI" do
-          in_current_dir do
-            run_simple "git commit --allow-empty -m 'Initial commit'"
-            run_simple "git rev-parse HEAD"
-            rev = all_stdout.split("\n").last
-            run_simple "git checkout #{rev}"
-            working_copy = WorkingCopy.detect(current_dir)
-            expect( working_copy.branch ).to eq "master"
-          end
+          # create a bare origin repo
+          create_dir "origin"
+          cd "origin"
+          run_simple "git init --bare"
+          # clone it
+          cd ".."
+          run_simple "git clone ./origin local"
+          cd "local"
+          # make a commit and push it to origin master
+          run_simple "touch foo"
+          run_simple "git add ."
+          run_simple "git commit -m 'foo'"
+          run_simple "git push"
+          # check out the remote branch
+          run_simple "git checkout remotes/origin/master"
+          run_simple "git branch -D master"
+          working_copy = WorkingCopy.detect(current_dir)
+          expect( working_copy.branch ).to eq "master"
         end
 
         it "figures out the name of the branch when that's what's checked out" do
           in_current_dir do
             run_simple "git commit --allow-empty -m 'Initial commit'"
+            working_copy = WorkingCopy.detect(current_dir)
+            expect( working_copy.branch ).to eq "master"
+          end
+        end
+
+        it "figures out the name of the branch when it has a name that looks like a remote branch" do
+          in_current_dir do
+            run_simple "git commit --allow-empty -m 'Initial commit'"
+            run_simple "git checkout -b remotes/foo/bar"
             working_copy = WorkingCopy.detect(current_dir)
             expect( working_copy.branch ).to eq "master"
           end

@@ -37,10 +37,9 @@ module Cucumber
         end
 
         def branch
-          branch = cmd("git branch --contains #{rev}").
-            reject { |b| /^\* \(detached from \w+\)/.match b }.
-            first.
-            gsub(/^\* /, '')
+          full_name = cmd("git name-rev --name-only HEAD")[0]
+          # /remotes/origin/master
+          full_name.gsub(/remotes\/\w+\//, '')
         end
 
         def rev
