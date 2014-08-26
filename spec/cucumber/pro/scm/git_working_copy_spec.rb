@@ -10,8 +10,7 @@ module Cucumber
           clean_current_dir
           in_current_dir do
             run_simple "git init"
-            run_simple "git config user.email \"test@test.com\""
-            run_simple "git config user.name \"Test user\""
+            git_config
           end
         end
 
@@ -98,6 +97,7 @@ module Cucumber
           create_dir "origin"
           cd "origin"
           run_simple "git init --bare"
+          git_config
           cd ".."
         end
 
@@ -117,6 +117,12 @@ module Cucumber
           @commit_number ||= 0
           "Commit message #{@commit_number += 1}"
         end
+
+        def git_config
+          run_simple "git config user.email \"test@test.com\""
+          run_simple "git config user.name \"Test user\""
+        end
+
       end
     end
   end
