@@ -112,7 +112,7 @@ module Cucumber
           run_simple "touch #{filename}"
           run_simple "git add ."
           run_simple "git commit -m '#{commit_message}'"
-          run_simple "git push"
+          run_simple "git push origin master"
         end
 
         def commit_message
