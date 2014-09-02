@@ -25,14 +25,14 @@ module Cucumber
         yield config
       end
 
+      def config
+        @config ||= Config.new
+      end
+
       private
 
       attr_reader :logger
       private :logger
-
-      def config
-        @config ||= Config.new
-      end
 
       def url
         config.url + "?token=#{token}"
@@ -52,14 +52,15 @@ module Cucumber
     end
 
     class Config
-      attr_accessor :url, :logger, :token, :should_publish, :timeout
+      attr_accessor :url, :logger, :token, :should_publish, :timeout, :build_number
     end
 
     # Default config
     configure do |config|
       config.url     = ENV['CUCUMBER_PRO_RESULTS_URL'] || 'wss://results.cucumber.pro/ws'
       config.token   = ENV['CUCUMBER_PRO_TOKEN']
-      config.should_publish = config.token && (ENV['BUILD_NUMBER'] || ENV['CI'])
+      config.build_number = ENV['BUILD_NUMBER'] || ENV['CIRCLE_BUILD_NUM'] || ENV['TRAVIS_JOB_NUMBER'] || ENV['bamboo.buildNumber'] || ENV['CI_BUILD_NUMBER']
+      config.should_publish = config.token && (config.build_number || ENV['CI'])
       config.timeout = 5
       if file = ENV['CUCUMBER_PRO_LOG_FILE']
         config.logger = Logger.new(file)

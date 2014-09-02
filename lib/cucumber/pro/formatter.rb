@@ -58,7 +58,7 @@ module Cucumber
           repo_url: @working_copy.repo_url,
           branch: @working_copy.branch,
           rev: @working_copy.rev,
-          group: get_run_id,
+          build_id: get_build_number,
           info: Info.new.to_h
         })
       end
@@ -81,8 +81,8 @@ module Cucumber
         })
       end
 
-      def get_run_id
-        SecureRandom.hex
+      def get_build_number
+        Pro.config.build_number || SecureRandom.hex
       end
 
     end
