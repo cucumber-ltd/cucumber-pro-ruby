@@ -1,1 +1,1 @@
-default: --format Cucumber::Pro --out /dev/null
+default: --format pretty --format Cucumber::Pro --out /dev/null

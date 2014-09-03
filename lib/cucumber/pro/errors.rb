@@ -13,6 +13,8 @@ module Cucumber
           super "Timed out waiting for a reply from the Cucumber Pro server."
         end
       }
+
+      ServerError = Class.new(StandardError)
     end
 
   end

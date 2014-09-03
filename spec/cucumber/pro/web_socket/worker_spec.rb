@@ -37,7 +37,25 @@ module Cucumber::Pro
         end
       end
 
-      it "throws an error if the server responds with an error"
+      it "throws an error if the server responds with an error" do
+        worker.send(good_data)
+        worker.close
+        eventually do
+          expect(socket.data.last).to eq good_data
+        end
+        eventually do
+          expect( worker ).to_not be_closed
+        end
+        begin
+          socket.send_error
+          fail
+        rescue => expected
+          expect(expected.message).to eq('an error happened on the server')
+          eventually do
+            expect( worker ).to be_closed
+          end
+        end
+      end
 
       def create_fake_socket(worker)
         socket.worker = worker
@@ -72,6 +90,11 @@ module Cucumber::Pro
           worker.method(:on_message).call(event)
         end
 
+        def send_error
+          event = ws_event(1000, { 'error' => 'an error happened on the server' })
+          worker.method(:on_message).call(event)
+        end
+
         def data
           @data ||= []
           while !@q.empty?
@@ -83,7 +106,7 @@ module Cucumber::Pro
         private
 
         def ws_event(code, data = {})
-          double('ws event', code: 1000, data: data)
+          double('ws event', code: 1000, data: data.to_json)
         end
 
       end

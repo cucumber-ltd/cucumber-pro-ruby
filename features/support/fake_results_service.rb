@@ -20,7 +20,7 @@ module FakeResultsService
     end
   end
 
-  class SocketApp 
+  class SocketApp
     def initialize(logger)
       @logger = logger
     end
@@ -40,7 +40,7 @@ module FakeResultsService
       ws.on :message do |event|
         logger.debug [:server, :message, event.data]
         FakeResultsService.messages << JSON.parse(event.data)
-        ws.send 'ok'
+        ws.send '{}'
       end
 
       ws.on :error do |event|
@@ -71,7 +71,7 @@ module FakeResultsService
     server = Puma::Server.new(app, events)
     server.binder = binder
     server.run
-    trap("INT") do 
+    trap("INT") do
       puts "Stopping..."
       server.stop(true)
       EM.stop_event_loop
