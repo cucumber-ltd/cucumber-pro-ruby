@@ -1,3 +1,7 @@
+## [0.0.15](https://github.com/cucumber-ltd/cucumber-pro-ruby/compare/v0.0.14...v0.0.15) (2014-09-03)
+
+* Print server errors to users.
+
 ## [0.0.14](https://github.com/cucumber-ltd/cucumber-pro-ruby/compare/v0.0.13...v0.0.14) (2014-09-02)
 
 * Only publish results if we detect a CI environment.

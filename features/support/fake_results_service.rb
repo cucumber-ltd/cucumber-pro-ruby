@@ -1,6 +1,7 @@
 require 'faye/websocket'
 require 'json'
 require 'logger'
+require 'cucumber/pro'
 
 module FakeResultsService
   PORT = 5000
@@ -90,7 +91,13 @@ module FakeResultsService
   $em = Thread.new do
     begin
       failing_after(3).tries do
-        EM.run &run_em_server
+        begin
+          EM.run &run_em_server
+        rescue Cucumber::Pro::Error::ServerError => exception
+          logger.fatal(exception)
+          $stderr.puts exception, exception.backtrace
+          exit 1
+        end
       end
     rescue => exception
       logger.fatal(exception)

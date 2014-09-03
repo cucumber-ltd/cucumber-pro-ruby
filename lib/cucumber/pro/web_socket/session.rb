@@ -137,7 +137,6 @@ module Cucumber
           @ack_count -= 1
           message = JSON.parse(event.data)
           if(message['error'])
-            EM.stop_event_loop
             raise Error::ServerError.new(message['error'])
           end
           self
@@ -145,11 +144,11 @@ module Cucumber
 
         def on_close(event)
           logger.debug [:ws, :close]
-          @ws = nil
-          EM.stop_event_loop
           if access_denied?(event)
             raise Error::AccessDenied.new
           end
+          @ws = nil
+          EM.stop_event_loop
           self
         end
 
