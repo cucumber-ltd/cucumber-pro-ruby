@@ -12,7 +12,7 @@ Add the following line to your Gemfile:
 
 First, set the following environment variables:
 
-    # on Windows, use `SET` instead of `export`.
+    # on Windows, use `SET` instead of `export`
     export CUCUMBER_PRO_TOKEN=<your auth token from https://app.cucumber.pro/my/profile>
     export CI=true
     export CUCUMBER_PRO_LOG_FILE=cucumber-pro.log
