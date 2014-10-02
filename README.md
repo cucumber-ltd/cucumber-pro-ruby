@@ -6,18 +6,18 @@ the [Cucumber Pro](https://cucumber.pro) web service.
 
 ## Usage
 
-Add the following line to your gemfile:
+Add the following line to your Gemfile:
 
     gem 'cucumber-pro'
 
-Now run Cucumber using the `Cucumber::Pro` formatter. First, set the following
-environment variables:
+First, set the following environment variables:
 
+    # on Windows, use `SET` instead of `export`.
     export CUCUMBER_PRO_TOKEN=<your auth token from https://app.cucumber.pro/my/profile>
     export CI=true
     export CUCUMBER_PRO_LOG_FILE=cucumber-pro.log
 
-On Windows, use `SET` instead of `export`.
+Now run Cucumber using the `Cucumber::Pro` formatter:
 
     cucumber -f Cucumber::Pro -f pretty
 
