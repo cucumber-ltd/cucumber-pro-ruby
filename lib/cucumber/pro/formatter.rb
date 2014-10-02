@@ -14,6 +14,9 @@ module Cucumber
 
       def before_feature(feature)
         @path = feature.file # we need this because table_row doens't have a file_colon_line
+        if Cucumber::WINDOWS
+          @path = @path.gsub(/\\/, '/')
+        end
       end
 
       def before_step_result(*args)
