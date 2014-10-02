@@ -14,9 +14,6 @@ module Cucumber
 
       def before_feature(feature)
         @path = feature.file # we need this because table_row doens't have a file_colon_line
-        if Cucumber::WINDOWS
-          @path = @path.gsub(/\\/, '/')
-        end
       end
 
       def before_step_result(*args)
@@ -68,7 +65,7 @@ module Cucumber
 
       def send_step_result(path, line, status)
         @session.send_message({
-          path: path,
+          path: forward_slashify(path),
           location: line.to_i,
           mime_type: 'application/vnd.cucumber.test-step-result+json',
           body: { status: status }
@@ -77,11 +74,15 @@ module Cucumber
 
       def send_test_case_result(path, line, status)
         @session.send_message({
-          path: path,
+          path: forward_slashify(path),
           location: line.to_i,
           mime_type: 'application/vnd.cucumber-pro.test-case-result+json',
           body: { status: status }
         })
+      end
+
+      def forward_slashify(path)
+        Cucumber::WINDOWS ? path.gsub(/\\/, '/') : path
       end
 
       def get_build_number

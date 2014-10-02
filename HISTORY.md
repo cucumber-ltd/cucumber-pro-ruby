@@ -1,3 +1,7 @@
+## [0.0.17](https://github.com/cucumber-ltd/cucumber-pro-ruby/compare/v0.0.16...v0.0.17) (2014-10-02)
+
+* Another Bugfix for Windows - convert backslash to slash in file paths everywhere.
+
 ## [0.0.16](https://github.com/cucumber-ltd/cucumber-pro-ruby/compare/v0.0.15...v0.0.16) (2014-10-02)
 
 * Bugfix for Windows - convert backslash to slash in file paths.
