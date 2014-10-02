@@ -8,16 +8,18 @@ the [Cucumber Pro](https://cucumber.pro) web service.
 
 Add the following line to your gemfile:
 
-```
-gem 'cucumber-pro'
-```
+    gem 'cucumber-pro'
 
-Now run Cucumber using the `Cucumber::Pro` formatter:
+Now run Cucumber using the `Cucumber::Pro` formatter. First, set the following
+environment variables:
 
-```
-CUCUMBER_PRO_TOKEN=<your auth token> cucumber -f Cucumber::Pro -o /dev/null -f pretty
-```
+    export CUCUMBER_PRO_TOKEN=<your auth token from https://app.cucumber.pro/my/profile>
+    export CI=true
+    export CUCUMBER_PRO_LOG_FILE=cucumber-pro.log
+
+On Windows, use `SET` instead of `export`.
+
+    cucumber -f Cucumber::Pro -f pretty
 
 This will set up a connection to the Cucumber Pro server and stream results as
-your tests run. If you want to see debug output, replace `/dev/null` with the
-path to a log file.
+your tests run.
