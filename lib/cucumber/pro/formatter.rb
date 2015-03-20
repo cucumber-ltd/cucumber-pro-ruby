@@ -54,7 +54,7 @@ module Cucumber
       private
 
       def send_header
-        @session.send_message({
+        @session.write({
           repo_url: @working_copy.repo_url,
           branch: @working_copy.branch,
           rev: @working_copy.rev,
@@ -64,7 +64,7 @@ module Cucumber
       end
 
       def send_step_result(path, line, status)
-        @session.send_message({
+        @session.write({
           path: forward_slashify(path),
           location: line.to_i,
           mime_type: 'application/vnd.cucumber.test-step-result+json',
@@ -73,7 +73,7 @@ module Cucumber
       end
 
       def send_test_case_result(path, line, status)
-        @session.send_message({
+        @session.write({
           path: forward_slashify(path),
           location: line.to_i,
           mime_type: 'application/vnd.cucumber-pro.test-case-result+json',
