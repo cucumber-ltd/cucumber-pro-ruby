@@ -38,7 +38,7 @@ Feature: Publish results
     Given a git repo
     And a feature "features/test.feature" with:
       """
-      Feature:
+      Featurex:
         Scenario Outline:
           Given <result>
 
